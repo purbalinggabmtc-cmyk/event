@@ -47,6 +47,7 @@
     box-shadow: 0 20px 50px rgba(0, 0, 0, .45);
   }
 
+  /* ===== Form ===== */
   .form-title {
     font-size: 18px;
     font-weight: 800;
@@ -97,9 +98,9 @@
   }
   button:active { transform: scale(.98); }
 
-  #btnSubmit { background: var(--accent); color: #111; margin-top: 6px; }
-  #btnSubmit:hover { background: #ffd23f; }
-  #btnSubmit:disabled { opacity: .6; cursor: not-allowed; }
+  #btnDaftar { background: var(--accent); color: #111; margin-top: 6px; }
+  #btnDaftar:hover { background: #ffd23f; }
+  #btnDaftar:disabled { opacity: .6; cursor: not-allowed; }
 
   .switch-link {
     display: block;
@@ -128,6 +129,7 @@
   .message.error { color: var(--danger); }
   .message.info  { color: var(--muted); }
 
+  /* ===== Dashboard ===== */
   .dashboard { display: none; text-align: center; }
   .dashboard.show { display: block; animation: fadeIn .35s ease; }
 
@@ -146,7 +148,11 @@
   }
   .dash-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
 
-  .qr-wrap { display: flex; justify-content: center; margin: 10px 0 18px; }
+  .qr-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0 18px;
+  }
   .qr-wrap img, .qr-wrap canvas {
     background: #fff;
     padding: 10px;
@@ -187,6 +193,7 @@
   }
   .btn-logout:hover { background: rgba(255, 92, 92, .1); }
 
+  /* ===== Modal Konfirmasi ===== */
   .modal-overlay {
     position: fixed;
     inset: 0;
@@ -224,7 +231,10 @@
   }
   .modal-actions { display: flex; flex-direction: column; gap: 10px; }
 
-  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+  }
   .btn-danger:hover { background: #ff7070; }
 
   .btn-cancel {
@@ -315,13 +325,8 @@
 </div>
 
 <script>
-  /* ============================================================
-     GANTI BARIS DI BAWAH INI DENGAN URL /exec MILIK ANDA
-     ============================================================ */
   var API_URL = "https://script.google.com/macros/s/AKfycbyg3sDxkMVUHMQbQGFZIXdOfhm2VACuM-rr8FMYO12eBlpEa3REXJ-ctN5HlqXok1lCUw/exec";
-
   var SESSION_KEY = "pesertaDashboard";
-  var DEVICE_KEY  = "deviceTokenEvent";
 
   window.addEventListener("DOMContentLoaded", function () {
 
@@ -334,28 +339,12 @@
     var btnRefresh  = document.getElementById("btnRefresh");
     var btnLogout   = document.getElementById("btnLogout");
 
-    var logoutModal = document.getElementById("logoutModal");
-    var btnConfirm  = document.getElementById("btnConfirmLogout");
-    var btnCancel   = document.getElementById("btnCancelLogout");
+    var logoutModal  = document.getElementById("logoutModal");
+    var btnConfirm   = document.getElementById("btnConfirmLogout");
+    var btnCancel    = document.getElementById("btnCancelLogout");
 
-    var mode = "daftar";
+    var mode = "daftar"; // "daftar" atau "masuk"
     var currentData = null;
-
-    // === Device token: buat sekali, simpan permanen di perangkat ini ===
-    var deviceToken = localStorage.getItem(DEVICE_KEY);
-    if (!deviceToken) {
-      deviceToken = generateToken();
-      localStorage.setItem(DEVICE_KEY, deviceToken);
-    }
-
-    function generateToken() {
-      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-      var s = "";
-      for (var i = 0; i < 32; i++) {
-        s += "0123456789abcdef".charAt(Math.floor(Math.random() * 16));
-      }
-      return s;
-    }
 
     btnSubmit.addEventListener("click", submit);
     btnSwitch.addEventListener("click", toggleMode);
@@ -365,11 +354,12 @@
     btnConfirm.addEventListener("click", doLogout);
     btnCancel.addEventListener("click", function () { logoutModal.classList.remove("show"); });
 
+    // Klik area luar modal = batal
     logoutModal.addEventListener("click", function (e) {
       if (e.target === logoutModal) logoutModal.classList.remove("show");
     });
 
-    // Kalau ada sesi -> dashboard
+    // Kalau ada sesi -> langsung dashboard
     var saved = sessionStorage.getItem(SESSION_KEY);
     if (saved) {
       try { tampilkanDashboard(JSON.parse(saved)); }
@@ -383,21 +373,22 @@
       elNama.value = "";
       elPin.value  = "";
 
-      var formTitle  = document.getElementById("formTitle");
-      var formSub    = document.getElementById("formSub");
-      var switchText = document.getElementById("switchText");
+      var formTitle = document.getElementById("formTitle");
+      var formSub   = document.getElementById("formSub");
+      var switchText= document.getElementById("switchText");
 
       if (mode === "daftar") {
-        formTitle.textContent  = "DAFTAR";
-        formSub.textContent    = "Belum punya akun? Isi data di bawah ini.";
-        btnSubmit.textContent  = "DAFTAR";
-        switchText.innerHTML   = 'Sudah punya akun? <b>MASUK</b>';
+        formTitle.textContent = "DAFTAR";
+        formSub.textContent   = "Belum punya akun? Isi data di bawah ini.";
+        btnSubmit.textContent = "DAFTAR";
+        switchText.innerHTML  = 'Sudah punya akun? <b>MASUK</b>';
       } else {
-        formTitle.textContent  = "MASUK";
-        formSub.textContent    = "Masukkan Nama & PIN Anda untuk melihat QR Code.";
-        btnSubmit.textContent  = "MASUK";
-        switchText.innerHTML   = 'Belum punya akun? <b>DAFTAR</b>';
+        formTitle.textContent = "MASUK";
+        formSub.textContent   = "Masukkan Nama & PIN Anda untuk melihat QR Code.";
+        btnSubmit.textContent = "MASUK";
+        switchText.innerHTML  = 'Belum punya akun? <b>DAFTAR</b>';
       }
+
       elNama.focus();
     }
 
@@ -426,17 +417,12 @@
       fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({
-          nama: nama,
-          pin: pin,
-          aksi: mode,
-          deviceToken: deviceToken
-        })
+        body: JSON.stringify({ nama: nama, pin: pin, aksi: mode })
       })
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (!data.success) {
-          setMessage(data.message || "Pendaftaran gagal.", "error");
+          setMessage(data.message || "Gagal.", "error");
           resetButton();
           return;
         }
@@ -477,13 +463,19 @@
       document.getElementById("dashCard").classList.add("show");
     }
 
-    // ===== Download QR =====
+    // ===== Download QR sebagai PNG =====
     function downloadQR() {
       var canvas = document.querySelector("#qrcode canvas");
       var img    = document.querySelector("#qrcode img");
 
-      if (canvas) { triggerDownload(canvas.toDataURL("image/png"), buildFileName()); return; }
-      if (img && img.src) { triggerDownload(img.src, buildFileName()); return; }
+      if (canvas) {
+        triggerDownload(canvas.toDataURL("image/png"), buildFileName());
+        return;
+      }
+      if (img && img.src) {
+        triggerDownload(img.src, buildFileName());
+        return;
+      }
       setMessage("QR belum siap, coba lagi.", "error");
     }
 
@@ -502,9 +494,11 @@
     }
 
     // ===== Refresh =====
-    function refresh() { location.reload(); }
+    function refresh() {
+      location.reload();
+    }
 
-    // ===== Logout =====
+    // ===== Logout (dikonfirmasi) =====
     function doLogout() {
       sessionStorage.removeItem(SESSION_KEY);
       location.reload();
