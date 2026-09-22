@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Scan Check-in</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --card: #1a1a1f; --border: #2c2c34; --accent: #ffc400;
+    --text: #f5f5f5; --muted: #9a9aa5; --danger: #ff5c5c; --ok: #4ade80;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: radial-gradient(circle at top, #1a1a22 0%, #0d0d0f 60%);
+    color: var(--text); min-height: 100vh; padding: 20px;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .container { width: 100%; max-width: 480px; }
+  .header { text-align: center; margin-bottom: 18px; }
+  .header h1 { font-size: 20px; letter-spacing: 2px; font-weight: 800; color: var(--accent); }
+  .subtitle { margin-top: 6px; font-size: 13px; color: var(--muted); }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,.45); margin-bottom: 16px;
+  }
+
+  #reader { width: 100%; border-radius: 14px; overflow: hidden; background: #000; }
+
+  .manual-row { display: flex; gap: 10px; margin-top: 14px; }
+  .manual-row input {
+    flex: 1; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
+    background: #101014; color: var(--text); font-size: 15px; outline: none;
+  }
+  .manual-row input:focus { border-color: var(--accent); }
+  .manual-row button {
+    padding: 0 18px; border: none; border-radius: 12px; background: var(--accent);
+    color: #111; font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+
+  .toggle-cam {
+    width: 100%; margin-top: 10px; padding: 12px; border-radius: 12px;
+    border: 1px solid var(--accent); background: transparent; color: var(--accent);
+    font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+
+  .message { margin-top: 12px; font-size: 13px; text-align: center; min-height: 18px; }
+  .message.error { color: var(--danger); }
+  .message.ok    { color: var(--ok); }
+  .message.info  { color: var(--muted); }
+
+  /* Hasil scan */
+  .result { display: none; text-align: center; }
+  .result.show { display: block; animation: pop .3s ease; }
+  @keyframes pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+
+  .result-icon { font-size: 52px; margin-bottom: 6px; }
+  .result-title { font-size: 18px; font-weight: 800; margin-bottom: 4px; }
+  .result-title.ok { color: var(--ok); }
+  .result-title.warn { color: var(--accent); }
+  .result-title.err { color: var(--danger); }
+  .result-nama { font-size: 22px; font-weight: 800; color: var(--accent); margin: 8px 0 2px; word-break: break-word; }
+  .result-id { font-size: 12px; color: var(--muted); font-family: monospace; }
+  .result-time { font-size: 13px; color: var(--muted); margin-top: 8px; }
+
+  .merch-title {
+    font-size: 12px; letter-spacing: 2px; color: var(--muted);
+    margin: 18px 0 10px; text-align: left;
+  }
+  .merch-list { display: flex; flex-direction: column; gap: 8px; }
+  .merch-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #101014; border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .merch-uk { font-size: 16px; font-weight: 800; color: var(--text); }
+  .merch-jml { font-size: 16px; font-weight: 800; color: var(--accent); font-family: monospace; }
+  .merch-empty { font-size: 13px; color: var(--muted); background: #101014;
+                 border: 1px dashed var(--border); border-radius: 12px; padding: 14px; }
+
+  .btn-next {
+    width: 100%; margin-top: 16px; padding: 15px; border: none; border-radius: 12px;
+    background: var(--accent); color: #111; font-weight: 700; font-size: 15px; cursor: pointer;
+  }
+  .btn-next:hover { background: #ffd23f; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header class="header">
+    <h1>SCAN CHECK-IN</h1>
+    <p class="subtitle">Scan QR peserta untuk check-in &amp; lihat pesanan merch</p>
+  </header>
+
+  <!-- Kamera -->
+  <section class="card" id="camCard">
+    <div id="reader"></div>
+    <button class="toggle-cam" type="button" id="btnToggleCam">⏸ Hentikan Kamera</button>
+
+    <div class="manual-row">
+      <input id="manualId" type="text" placeholder="Input manual ID (BAD-xxxx)" autocomplete="off">
+      <button id="btnManual" type="button">CEK</button>
+    </div>
+
+    <div id="message" class="message"></div>
+  </section>
+
+  <!-- Hasil -->
+  <section class="card result" id="resultCard">
+    <div class="result-icon" id="resIcon">✅</div>
+    <div class="result-title" id="resTitle"></div>
+    <div class="result-nama" id="resNama"></div>
+    <div class="result-id" id="resId"></div>
+    <div class="result-time" id="resTime"></div>
+
+    <div class="merch-title">PESANAN MERCH</div>
+    <div class="merch-list" id="merchList"></div>
+
+    <button class="btn-next" type="button" id="btnNext">＋ Scan Berikutnya</button>
+  </section>
+</div>
+
+<script>
+  var API_URL = "https://script.google.com/macros/s/AKfycbyg3sDxkMVUHMQbQGFZIXdOfhm2VACuM-rr8FMYO12eBlpEa3REXJ-ctN5HlqXok1lCUw/exec";
+
+  window.addEventListener("DOMContentLoaded", function () {
+    var elMsg     = document.getElementById("message");
+    var elManual  = document.getElementById("manualId");
+    var btnManual = document.getElementById("btnManual");
+    var btnToggle = document.getElementById("btnToggleCam");
+    var btnNext   = document.getElementById("btnNext");
+
+    var resCard   = document.getElementById("resultCard");
+    var camCard   = document.getElementById("camCard");
+
+    var html5Qr = null;
+    var scanning = true;
+    var busy = false;          // cegah double-scan
+
+    // ---------- Init kamera ----------
+    if (typeof Html5Qrcode !== "undefined") {
+      html5Qr = new Html5Qrcode("reader");
+      startScanner();
+    } else {
+      setMessage("Scanner kamera tidak tersedia. Gunakan input manual.", "error");
+    }
+
+    function startScanner() {
+      html5Qr.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 240, height: 240 } },
+        onScanSuccess,
+        function () {}          // error scan per-frame diabaikan
+      ).then(function () {
+        scanning = true;
+        btnToggle.textContent = "⏸ Hentikan Kamera";
+      }).catch(function (err) {
+        setMessage("Tidak bisa akses kamera. Pakai input manual. (" + err + ")", "error");
+      });
+    }
+
+    function stopScanner() {
+      if (!html5Qr) return;
+      html5Qr.stop().then(function () {
+        scanning = false;
+        btnToggle.textContent = "▶ Nyalakan Kamera";
+      }).catch(function () {});
+    }
+
+    function onScanSuccess(decodedText) {
+      if (busy) return;              // sedang proses -> abaikan
+      var id = String(decodedText || "").trim();
+      if (!id) return;
+
+      // Ekstrak ID jika QR berisi URL (mis. ...?id=BAD-xxxx)
+      var m = id.match(/BAD-[A-Z0-9]{8}/i);
+      if (m) id = m[0];
+
+      processScan(id);
+    }
+
+    btnToggle.addEventListener("click", function () {
+      if (scanning) stopScanner(); else startScanner();
+    });
+
+    btnManual.addEventListener("click", function () {
+      var id = elManual.value.trim();
+      if (!id) { setMessage("Ketik ID dulu.", "error"); return; }
+      processScan(id);
+    });
+    elManual.addEventListener("keydown", function (e) { if (e.key === "Enter") btnManual.click(); });
+
+    btnNext.addEventListener("click", function () {
+      resCard.classList.remove("show");
+      camCard.style.display = "block";
+      elManual.value = "";
+      setMessage("", "");
+      busy = false;
+      if (!scanning) startScanner();
+    });
+
+    // ---------- Kirim ke backend ----------
+    function processScan(id) {
+      if (busy) return;
+      busy = true;
+      setMessage("Memproses " + id + "...", "info");
+
+      fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ aksi: "scanCheckin", idPeserta: id })
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        setMessage("", "");
+
+        if (!data.success) {
+          showResult("err", "❌", "GAGAL", data.message || "QR tidak valid.", data);
+          return;
+        }
+
+        if (data.status === "sudah") {
+          showResult("warn", "⚠️", "SUDAH CHECK-IN", data.message, data);
+        } else {
+          showResult("ok", "✅", "CHECK-IN BERHASIL", data.message, data);
+        }
+      })
+      .catch(function (err) {
+        console.error(err);
+        setMessage("Gagal terhubung ke server.", "error");
+        busy = false;
+      });
+    }
+
+    function showResult(kind, icon, title, msg, data) {
+      camCard.style.display = "none";
+
+      var resTitle = document.getElementById("resTitle");
+      resTitle.textContent = title;
+      resTitle.className = "result-title " + kind;
+
+      document.getElementById("resIcon").textContent  = icon;
+      document.getElementById("resNama").textContent  = data.nama || "-";
+      document.getElementById("resId").textContent    = data.idPeserta || "";
+
+      var resTime = document.getElementById("resTime");
+      resTime.textContent = "";
+      if (data.checkIn) resTime.textContent = "Check-in: " + data.checkIn;
+
+      if (msg && data.status !== "berhasil" && data.status !== "sudah") {
+        resTime.textContent = msg;
+      }
+
+      renderMerch(data.merchList || []);
+      resCard.classList.add("show");
+      setMessage("", "");
+      // busy tetap true sampai tombol "Scan Berikutnya" -> cegah scan ganda
+    }
+
+    function renderMerch(list) {
+      var box = document.getElementById("merchList");
+      box.innerHTML = "";
+
+      if (!list || list.length === 0) {
+        box.innerHTML = '<div class="merch-empty">Tidak ada pesanan merch.</div>';
+        return;
+      }
+      list.forEach(function (m) {
+        var item = document.createElement("div");
+        item.className = "merch-item";
+
+        var uk = document.createElement("span");
+        uk.className = "merch-uk";
+        uk.textContent = "Ukuran " + m.ukuran;
+
+        var jml = document.createElement("span");
+        jml.className = "merch-jml";
+        jml.textContent = "×" + m.jumlah;
+
+        item.appendChild(uk);
+        item.appendChild(jml);
+        box.appendChild(item);
+      });
+    }
+
+    function setMessage(text, type) {
+      elMsg.textContent = text;
+      elMsg.className = "message" + (type ? " " + type : "");
+    }
+  });
+</script>
+
+</body>
+</html>
