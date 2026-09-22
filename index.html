@@ -71,6 +71,24 @@
   .message { margin-top: 14px; font-size: 13px; text-align: center; min-height: 18px; }
   .message.error { color: var(--danger); }
   .message.info  { color: var(--muted); }
+
+  /* >>> TAMBAHAN: gambar bullaes di dalam frame form <<< */
+  .form-footer-img {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+  }
+  .form-footer-img img {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    opacity: .95;
+  }
+
   .dashboard { display: none; text-align: center; }
   .dashboard.show { display: block; animation: fadeIn .35s ease; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -94,7 +112,7 @@
   .undian-count { font-size: 12px; color: var(--muted); margin-top: 10px; }
 
   .dash-actions { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
-   /* >>> TAMBAHAN: tombol lihat pengundian <<< */
+  /* >>> TAMBAHAN: tombol lihat pengundian <<< */
   .btn-undian {
     display: block; text-align: center; text-decoration: none;
     background: var(--accent); color: #111; border: 1px solid var(--accent);
@@ -104,7 +122,6 @@
   }
   .btn-undian:hover { background: #ffd23f; border-color: #ffd23f; }
   .btn-undian:active { transform: scale(.98); }
-  /* >>> SAMPAI SINI <<< */
   .btn-secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
   .btn-secondary:hover { background: rgba(255,196,0,.1); }
   .btn-logout { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
@@ -172,6 +189,11 @@
     </button>
 
     <div id="message" class="message"></div>
+
+    <!-- >>> TAMBAHAN: gambar bullaes di dalam frame form <<< -->
+    <div class="form-footer-img">
+      <img src="bullaes.png" alt="Bold After Dark" loading="lazy">
+    </div>
   </section>
 
   <section class="card dashboard" id="dashCard">
@@ -188,7 +210,9 @@
     </div>
 
     <div class="dash-actions">
+      <!-- >>> TAMBAHAN: tombol lihat pengundian <<< -->
       <a class="btn-undian" href="undian.html?mode=peserta">👁 Lihat Pengundian</a>
+
       <button class="btn-secondary" type="button" id="btnDownload">⬇ Download QR</button>
       <button class="btn-secondary" type="button" onclick="window.print()">🖨 Simpan / Cetak</button>
       <button class="btn-secondary" type="button" id="btnRefresh">⟳ Refresh</button>
