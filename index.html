@@ -72,21 +72,21 @@
   .message.error { color: var(--danger); }
   .message.info  { color: var(--muted); }
 
-  /* >>> TAMBAHAN: gambar bullaes di dalam frame form <<< */
+  /* >>> TAMBAHAN: gambar bullaes di dalam frame form (diperkecil) <<< */
   .form-footer-img {
-    margin-top: 20px;
-    padding-top: 16px;
+    margin-top: 10px;          /* persempit dari 20px */
+    padding-top: 10px;         /* persempit dari 16px */
     border-top: 1px solid var(--border);
     display: flex;
     justify-content: center;
   }
   .form-footer-img img {
-    width: 100%;
-    max-width: 100%;
+    width: 55%;                /* perkecil: dari 100% jadi 55% */
+    max-width: 55%;
     height: auto;
     object-fit: contain;
     display: block;
-    opacity: .95;
+    opacity: .9;
   }
 
   .dashboard { display: none; text-align: center; }
