@@ -3,29 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BOLD AFTER DARK</title>
+  <title>Pendaftaran Event</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <img src="logo.png" class="logo" alt="logo">
-    <h2>PENDAFTARAN EVENT</h2>
 
-    <div class="card" id="formCard">
-      <input id="nama" placeholder="Nama Lengkap">
-      <input id="nik5" placeholder="5 Digit Terakhir NIK" maxlength="5" inputmode="numeric">
-      <button onclick="daftar()">DAFTAR</button>
-      <div id="message"></div>
-    </div>
+    <header class="header">
+      <h1>PENDAFTARAN EVENT</h1>
+      <p class="subtitle">Isi data untuk mendapatkan QR Code &amp; nomor undian</p>
+    </header>
 
-    <div class="card" id="resultCard" style="display:none;">
-      <h3>Pendaftaran Berhasil</h3>
-      <p id="hasilNama"></p>
-      <div id="qrcode" style="margin: 20px auto; display:flex; justify-content:center;"></div>
-      <p>Nomor Undian</p>
-      <div id="nomorUndian" style="font-size:32px;font-weight:bold;letter-spacing:2px;"></div>
-    </div>
+    <!-- ===== FORM ===== -->
+    <section class="card" id="formCard">
+      <label class="field">
+        <span>Nama Lengkap</span>
+        <input id="nama" type="text" placeholder="Masukkan nama lengkap"
+               autocomplete="name" maxlength="60">
+      </label>
+
+      <label class="field">
+        <span>PIN (5 digit angka)</span>
+        <input id="pin" type="password" inputmode="numeric" maxlength="5"
+               placeholder="Contoh: 12345" autocomplete="off">
+      </label>
+
+      <button id="btnDaftar" onclick="daftar()">
+        <span id="btnText">DAFTAR</span>
+      </button>
+
+      <div id="message" class="message"></div>
+    </section>
+
+    <!-- ===== HASIL ===== -->
+    <section class="card result" id="resultCard">
+      <h2 class="success-title">Pendaftaran Berhasil 🎉</h2>
+
+      <p class="hasil-nama">Nama: <strong id="hasilNama"></strong></p>
+
+      <div class="qr-wrap">
+        <div id="qrcode"></div>
+      </div>
+
+      <div class="undian">
+        <span class="undian-label">NOMOR UNDIAN ANDA</span>
+        <span class="undian-number" id="nomorUndian"></span>
+      </div>
+
+      <button class="btn-secondary" onclick="window.print()">SIMPAN / CETAK</button>
+      <button class="btn-link" id="btnUlang" onclick="daftarLagi()">Daftar lagi</button>
+    </section>
+
   </div>
 
   <script src="app.js"></script>
