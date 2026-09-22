@@ -15,9 +15,23 @@
     background: radial-gradient(circle at top, #1a1a22 0%, #0d0d0f 65%);
     color: var(--text); min-height: 100vh; padding: 20px;
     display: flex; flex-direction: column; align-items: center;
+    overflow-x: hidden;
   }
-  .container { width: 100%; max-width: 460px; }
-  .header { text-align: center; margin-bottom: 18px; }
+  .container { width: 100%; max-width: 460px; position: relative; z-index: 2; }
+
+  /* Tombol close (pojok kanan atas) */
+  .btn-close {
+    position: absolute; top: 0; right: 0;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,.06); border: 1px solid var(--border);
+    color: var(--muted); font-size: 20px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; text-decoration: none;
+    transition: background .2s, color .2s, border-color .2s;
+  }
+  .btn-close:hover { background: rgba(255,92,92,.15); color: #ff5c5c; border-color: rgba(255,92,92,.4); }
+
+  .header { text-align: center; margin-bottom: 18px; padding-top: 4px; }
   .header h1 { font-size: 18px; letter-spacing: 3px; font-weight: 800; color: var(--accent); }
   .header .stats { margin-top: 8px; font-size: 12px; color: var(--muted); }
   .dot-live {
@@ -29,37 +43,92 @@
   /* Slot nomor */
   .slot-card {
     background: var(--card); border: 1px solid var(--border); border-radius: 22px;
-    padding: 28px 20px; text-align: center; margin-bottom: 18px;
+    padding: 30px 18px; text-align: center; margin-bottom: 18px;
     box-shadow: 0 24px 60px rgba(0,0,0,.5);
+    position: relative; overflow: hidden;
+    transition: border-color .4s, box-shadow .4s;
   }
-  .slot-label { font-size: 11px; letter-spacing: 3px; color: var(--muted); margin-bottom: 14px; }
-  .slot-nomor {
-    font-size: 58px; font-weight: 900; letter-spacing: 6px;
-    font-family: "Courier New", monospace; color: var(--accent);
-    text-shadow: 0 0 30px rgba(255,196,0,.45); line-height: 1.1;
-    min-height: 66px; word-break: break-all;
+  .slot-card.rolling {
+    border-color: rgba(255,196,0,.5);
+    box-shadow: 0 0 50px rgba(255,196,0,.25), 0 24px 60px rgba(0,0,0,.5);
   }
-  .slot-nomor.rolling { color: var(--muted); text-shadow: none; }
+  .slot-card.win {
+    border-color: rgba(74,222,128,.7);
+    box-shadow: 0 0 60px rgba(74,222,128,.4), 0 24px 60px rgba(0,0,0,.5);
+    animation: winPulse 1.2s ease;
+  }
+  @keyframes winPulse {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.04); }
+    100% { transform: scale(1); }
+  }
+
+  .slot-label { font-size: 11px; letter-spacing: 3px; color: var(--muted); margin-bottom: 18px; }
+
+  .digit-row {
+    display: flex; justify-content: center; gap: 8px;
+    margin-bottom: 6px; min-height: 78px; align-items: center;
+  }
+  .digit-box {
+    width: 56px; height: 74px; border-radius: 12px;
+    background: #101014; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 42px; font-weight: 900; font-family: "Courier New", monospace;
+    color: var(--accent); overflow: hidden; position: relative;
+    transition: border-color .3s, box-shadow .3s, background .3s;
+  }
+  .digit-box.roll {
+    border-color: rgba(255,196,0,.45);
+    box-shadow: inset 0 0 20px rgba(255,196,0,.15);
+  }
+  .digit-box.hit {
+    border-color: var(--ok);
+    background: rgba(74,222,128,.1);
+    box-shadow: 0 0 24px rgba(74,222,128,.5);
+  }
+  .digit-inner { display: block; will-change: transform, opacity; }
+  .digit-inner.spin { animation: slotSpin .09s linear infinite; }
+  @keyframes slotSpin {
+    from { transform: translateY(-100%); opacity: .2; }
+    to   { transform: translateY(100%);  opacity: .2; }
+  }
+
   .slot-nama {
-    margin-top: 14px; font-size: 22px; font-weight: 800; color: var(--text);
-    min-height: 30px; word-break: break-word;
+    margin-top: 18px; font-size: 23px; font-weight: 800; color: var(--text);
+    min-height: 32px; word-break: break-word;
   }
-  .slot-nama.reveal { animation: reveal .6s ease; }
+  .slot-nama.reveal { animation: reveal .7s cubic-bezier(.2,1.3,.4,1); }
   @keyframes reveal {
-    0% { transform: scale(.7); opacity: 0; }
-    60% { transform: scale(1.08); }
-    100% { transform: scale(1); opacity: 1; }
+    0%   { transform: scale(.5) translateY(10px); opacity: 0; }
+    60%  { transform: scale(1.12); opacity: 1; }
+    100% { transform: scale(1); }
   }
+
   .slot-badge {
-    display: inline-block; margin-top: 12px; padding: 6px 16px; border-radius: 999px;
-    font-size: 11px; letter-spacing: 2px; font-weight: 800;
+    display: inline-block; margin-top: 14px; padding: 7px 18px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 3px; font-weight: 800;
     background: rgba(74,222,128,.15); color: var(--ok);
     border: 1px solid rgba(74,222,128,.4);
-    opacity: 0; transition: opacity .4s;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity .4s, transform .4s;
   }
-  .slot-badge.show { opacity: 1; }
+  .slot-badge.show { opacity: 1; transform: translateY(0); }
 
   .waiting { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 18px; }
+
+  /* ====== TOMBOL TARIK (khusus mode panitia) ====== */
+  .btn-tarik {
+    display: none;                    /* disembunyikan default */
+    width: 100%; padding: 18px; margin-bottom: 18px;
+    border: none; border-radius: 16px;
+    background: var(--accent); color: #111;
+    font-weight: 800; font-size: 17px; letter-spacing: 1px;
+    cursor: pointer; transition: background .2s, transform .1s;
+  }
+  .btn-tarik.show { display: block; }
+  .btn-tarik:hover { background: #ffd23f; }
+  .btn-tarik:active { transform: scale(.98); }
+  .btn-tarik:disabled { opacity: .6; cursor: not-allowed; }
 
   /* Riwayat */
   .riwayat-title {
@@ -91,57 +160,126 @@
     border: 1px dashed var(--border); border-radius: 14px; padding: 18px;
     text-align: center;
   }
+
+  /* CONFETTI */
+  .confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden; }
+  .confetti {
+    position: absolute; width: 9px; height: 14px; opacity: .95;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0%   { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* Badge mode panitia */
+  .mode-badge {
+    display: none; margin-bottom: 14px; text-align: center;
+    font-size: 11px; letter-spacing: 2px; font-weight: 800;
+    color: var(--accent); background: rgba(255,196,0,.1);
+    border: 1px solid rgba(255,196,0,.35); border-radius: 999px;
+    padding: 7px 16px;
+  }
+  .mode-badge.show { display: inline-block; }
 </style>
 </head>
 <body>
 <div class="container">
+
+  <!-- Tombol close (selalu ada) -->
+  <a class="btn-close" href="javascript:void(0)" id="btnClose" title="Tutup">✕</a>
+
   <header class="header">
     <h1>PENGAMBILAN UNDIAN</h1>
     <div class="stats"><span class="dot-live"></span><span id="statLive">Live</span></div>
   </header>
 
-  <!-- Slot nomor -->
-  <section class="slot-card">
+  <div class="mode-badge" id="modeBadge">MODE PANITIA</div>
+
+  <section class="slot-card" id="slotCard">
     <div class="slot-label">NOMOR UNDIAN</div>
-    <div class="slot-nomor" id="slotNomor">----</div>
+    <div class="digit-row" id="digitRow">
+      <div class="digit-box"><span class="digit-inner" data-i="0">–</span></div>
+      <div class="digit-box"><span class="digit-inner" data-i="1">–</span></div>
+      <div class="digit-box"><span class="digit-inner" data-i="2">–</span></div>
+      <div class="digit-box"><span class="digit-inner" data-i="3">–</span></div>
+    </div>
     <div class="slot-nama" id="slotNama">Menunggu undian dimulai...</div>
     <div class="slot-badge" id="slotBadge">PEMENANG</div>
   </section>
 
+  <!-- Tombol tarik: HANYA tampil di mode panitia -->
+  <button class="btn-tarik" id="btnTarik" type="button">🎲 TARIK NOMOR UNDIAN</button>
+
   <div class="waiting" id="waitingText">Panitia akan segera menarik nomor.</div>
 
-  <!-- Riwayat -->
   <div class="riwayat-title">RIWAYAT PEMENANG</div>
   <div class="riwayat-list" id="riwayatList">
     <div class="riwayat-empty">Belum ada pemenang.</div>
   </div>
 </div>
 
+<div class="confetti-layer" id="confettiLayer"></div>
+
 <script>
   var API_URL = "https://script.google.com/macros/s/AKfycbyg3sDxkMVUHMQbQGFZIXdOfhm2VACuM-rr8FMYO12eBlpEa3REXJ-ctN5HlqXok1lCUw/exec";
-  var POLL_MS = 3000;             // polling tiap 3 detik
-  var ROLL_MS = 2600;             // durasi animasi ngacak
+  var POLL_MS = 3000;
 
-  var lastCount = -1;             // jumlah pemenang yang sudah ditampilkan
-  var isAnimating = false;
-  var riwayatTerakhir = [];
+  /* ==== MODE: baca dari ?mode=panitia atau ?mode=peserta ==== */
+  var params     = new URLSearchParams(window.location.search);
+  var MODE       = (params.get("mode") || "peserta").toLowerCase();
+  var IS_PANITIA = (MODE === "panitia");
 
-  var elNomor   = document.getElementById("slotNomor");
+  var CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+  var lastIdPemenang = null;
+  var sudahInit     = false;
+  var isAnimating   = false;
+  var isDrawing     = false;
+
+  var elCard    = document.getElementById("slotCard");
   var elNama    = document.getElementById("slotNama");
   var elBadge   = document.getElementById("slotBadge");
   var elWait    = document.getElementById("waitingText");
   var elRiwayat = document.getElementById("riwayatList");
   var elLive    = document.getElementById("statLive");
+  var elConfetti= document.getElementById("confettiLayer");
+  var btnTarik  = document.getElementById("btnTarik");
+  var digitBoxes  = Array.prototype.slice.call(document.querySelectorAll(".digit-box"));
+  var digitInners = Array.prototype.slice.call(document.querySelectorAll(".digit-inner"));
 
-  var CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  function acakChar() { return CHARS.charAt(Math.floor(Math.random() * CHARS.length)); }
+  function setDigit(i, ch) { digitInners[i].textContent = ch; }
 
-  function acakNomor() {
-    var s = "";
-    for (var i = 0; i < 4; i++) s += CHARS.charAt(Math.floor(Math.random() * CHARS.length));
-    return s;
+  function resetDigits() {
+    digitBoxes.forEach(function (b) { b.classList.remove("roll", "hit"); });
+    digitInners.forEach(function (d) { d.classList.remove("spin"); d.textContent = "–"; });
   }
 
-  // ---------- Ambil riwayat pemenang ----------
+  /* ====== ATUR TAMPILAN SESUAI MODE ====== */
+  function terapkanMode() {
+    if (IS_PANITIA) {
+      btnTarik.classList.add("show");
+      document.getElementById("modeBadge").classList.add("show");
+      elWait.textContent = "Tekan tombol untuk menarik nomor.";
+    } else {
+      btnTarik.classList.remove("show");
+      document.getElementById("modeBadge").classList.remove("show");
+    }
+  }
+
+  /* ====== Tombol CLOSE ====== */
+  document.getElementById("btnClose").addEventListener("click", function () {
+    if (document.referrer && document.referrer !== "") {
+      window.location.href = document.referrer;
+    } else if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.close();
+    }
+  });
+
+  /* ====== Ambil riwayat pemenang ====== */
   function fetchRiwayat() {
     fetch(API_URL, {
       method: "POST",
@@ -154,59 +292,103 @@
       var list = data.pemenang || [];
       elLive.textContent = "Live · " + list.length + " pemenang";
 
-      // Ada pemenang BARU?
-      if (list.length > lastCount && lastCount !== -1) {
-        var baru = list[list.length - 1];
-        jalankanAnimasi(baru.nomorUndian, baru.nama);
-      } else if (lastCount === -1 && list.length > 0) {
-        // Muat halaman setelah undian sudah jalan -> tampilkan pemenang terakhir tanpa animasi
+      if (list.length > 0) {
         var terakhir = list[list.length - 1];
-        elNomor.textContent = terakhir.nomorUndian;
-        elNama.textContent  = terakhir.nama;
-        elBadge.classList.add("show");
-        elWait.textContent  = "Undian sedang berlangsung...";
+        var idNow = terakhir.idUndian || terakhir.nomorUndian;
+
+        if (!sudahInit) {
+          sudahInit = true;
+          lastIdPemenang = idNow;
+          tampilStatis(terakhir.nomorUndian, terakhir.nama);
+        } else if (idNow !== lastIdPemenang) {
+          lastIdPemenang = idNow;
+          jalankanAnimasi(terakhir.nomorUndian, terakhir.nama);
+        }
+        if (!isDrawing) elWait.textContent = "Menunggu undian berikutnya...";
+
+      } else {
+        sudahInit = true;
       }
 
-      lastCount = list.length;
       renderRiwayat(list);
     })
-    .catch(function () { /* abaikan error polling */ });
+    .catch(function () { /* abaikan */ });
   }
 
-  // ---------- Animasi live drawing ----------
+  function tampilStatis(nomor, nama) {
+    var arr = String(nomor).toUpperCase().split("");
+    for (var i = 0; i < 4; i++) setDigit(i, arr[i] || "–");
+    elNama.textContent = nama;
+    elBadge.classList.add("show");
+  }
+
+  /* ====== Animasi live drawing ====== */
   function jalankanAnimasi(nomorFinal, namaFinal) {
     if (isAnimating) return;
     isAnimating = true;
 
     elBadge.classList.remove("show");
-    elNomor.classList.add("rolling");
+    elCard.classList.remove("win");
+    elCard.classList.add("rolling");
     elNama.textContent = "";
     elWait.textContent = "Sedang mengacak nomor...";
+    resetDigits();
 
-    var startTs = Date.now();
-    var ticker = setInterval(function () {
-      elNomor.textContent = acakNomor();
+    var finalArr  = String(nomorFinal).toUpperCase().split("");
+    var stopTimes = [1900, 2400, 2900, 3450];
+    var tickers   = [];
 
-      if (Date.now() - startTs >= ROLL_MS) {
-        clearInterval(ticker);
-        finalize(nomorFinal, namaFinal);
-      }
-    }, 70);
+    digitBoxes.forEach(function (box, i) {
+      box.classList.add("roll");
+      digitInners[i].classList.add("spin");
+      var t = setInterval(function () { setDigit(i, acakChar()); }, 55 + i * 8);
+      tickers.push(t);
+    });
+
+    stopTimes.forEach(function (ms, i) {
+      setTimeout(function () {
+        clearInterval(tickers[i]);
+        digitInners[i].classList.remove("spin");
+        digitInners[i].textContent = finalArr[i] || "–";
+        digitBoxes[i].classList.add("hit");
+        digitBoxes[i].classList.remove("roll");
+        if (i === digitBoxes.length - 1) finishReveal(namaFinal);
+      }, ms);
+    });
   }
 
-  function finalize(nomor, nama) {
-    elNomor.classList.remove("rolling");
-    elNomor.textContent = nomor;
-    elNama.textContent  = nama;
+  function finishReveal(nama) {
+    elCard.classList.remove("rolling");
+    elCard.classList.add("win");
+    elNama.textContent = nama;
     elNama.classList.remove("reveal");
-    void elNama.offsetWidth;           // reset animasi
+    void elNama.offsetWidth;
     elNama.classList.add("reveal");
     elBadge.classList.add("show");
     elWait.textContent = "Menunggu undian berikutnya...";
+    ledakkanConfetti();
     isAnimating = false;
   }
 
-  // ---------- Render riwayat ----------
+  function ledakkanConfetti() {
+    var warna = ["#ffc400", "#4ade80", "#f5f5f5", "#ff5c5c", "#5cc8ff"];
+    for (var i = 0; i < 60; i++) {
+      (function (i) {
+        setTimeout(function () {
+          var c = document.createElement("div");
+          c.className = "confetti";
+          c.style.left = Math.random() * 100 + "vw";
+          c.style.background = warna[Math.floor(Math.random() * warna.length)];
+          c.style.animationDuration = (2 + Math.random() * 1.8) + "s";
+          c.style.width = (6 + Math.random() * 7) + "px";
+          c.style.height = (10 + Math.random() * 9) + "px";
+          elConfetti.appendChild(c);
+          setTimeout(function () { c.remove(); }, 4200);
+        }, i * 35);
+      })(i);
+    }
+  }
+
   function renderRiwayat(list) {
     if (!list || list.length === 0) {
       elRiwayat.innerHTML = '<div class="riwayat-empty">Belum ada pemenang.</div>';
@@ -215,35 +397,76 @@
     elRiwayat.innerHTML = "";
     list.slice().reverse().forEach(function (p, idx) {
       var no = list.length - idx;
-
       var item = document.createElement("div");
       item.className = "riwayat-item";
-
       var badge = document.createElement("div");
       badge.className = "riwayat-no";
       badge.textContent = no;
-
       var info = document.createElement("div");
       info.className = "riwayat-info";
-
       var nm = document.createElement("div");
       nm.className = "riwayat-nomor";
       nm.textContent = p.nomorUndian;
-
       var na = document.createElement("div");
       na.className = "riwayat-nama";
       na.textContent = p.nama;
-
       info.appendChild(nm);
       info.appendChild(na);
-
       item.appendChild(badge);
       item.appendChild(info);
       elRiwayat.appendChild(item);
     });
   }
 
-  // ---------- Loop polling ----------
+  /* ====== TOMBOL TARIK (hanya berfungsi di mode panitia) ====== */
+  btnTarik.addEventListener("click", function () {
+    if (!IS_PANITIA) return;          // pengaman ganda
+    if (isDrawing) return;
+    if (!confirm("Tarik 1 nomor undian sekarang?")) return;
+
+    isDrawing = true;
+    btnTarik.disabled = true;
+    btnTarik.textContent = "⏳ MENGACAK...";
+    elWait.textContent = "Menarik nomor...";
+
+    fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ aksi: "tarikUndian" })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.success) {
+        alert("Gagal menarik undian:\n\n" + (data.message || "Tidak diketahui."));
+        isDrawing = false;
+        btnTarik.disabled = false;
+        btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
+        return;
+      }
+      // Animasi langsung (tanpa nunggu polling)
+      lastIdPemenang = null;
+      jalankanAnimasi(data.nomorUndian, data.nama);
+
+      // Setelah animasi selesai, sync ulang
+      setTimeout(function () {
+        isDrawing = false;
+        btnTarik.disabled = false;
+        btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
+        sudahInit = true;
+        fetchRiwayat();
+      }, 3600);
+    })
+    .catch(function (err) {
+      console.error(err);
+      alert("Gagal terhubung ke server.");
+      isDrawing = false;
+      btnTarik.disabled = false;
+      btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
+    });
+  });
+
+  /* ====== INIT ====== */
+  terapkanMode();
   fetchRiwayat();
   setInterval(fetchRiwayat, POLL_MS);
 </script>
