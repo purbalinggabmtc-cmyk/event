@@ -47,6 +47,21 @@
     box-shadow: 0 20px 50px rgba(0, 0, 0, .45);
   }
 
+  /* ===== Form ===== */
+  .form-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .form-sub {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
   .field { display: block; margin-bottom: 16px; }
   .field span {
     display: block;
@@ -87,25 +102,23 @@
   #btnDaftar:hover { background: #ffd23f; }
   #btnDaftar:disabled { opacity: .6; cursor: not-allowed; }
 
-  .btn-secondary {
+  .switch-link {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
     background: transparent;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    margin-top: 22px;
-  }
-  .btn-secondary:hover { background: rgba(255, 196, 0, .1); }
-
-  .btn-link {
-    background: transparent;
-    color: var(--muted);
     border: none;
+    color: var(--muted);
     font-size: 13px;
     font-weight: 500;
     letter-spacing: 0;
-    margin-top: 12px;
+    text-align: center;
+    cursor: pointer;
     text-decoration: underline;
+    padding: 6px;
   }
-  .btn-link:hover { color: var(--text); }
+  .switch-link:hover { color: var(--text); }
+  .switch-link b { color: var(--accent); }
 
   .message {
     margin-top: 14px;
@@ -116,18 +129,26 @@
   .message.error { color: var(--danger); }
   .message.info  { color: var(--muted); }
 
-  .result { display: none; text-align: center; }
-  .result.show { display: block; animation: fadeIn .35s ease; }
+  /* ===== Dashboard ===== */
+  .dashboard { display: none; text-align: center; }
+  .dashboard.show { display: block; animation: fadeIn .35s ease; }
 
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .success-title { font-size: 18px; color: var(--accent); margin-bottom: 14px; }
-  .hasil-nama { font-size: 14px; color: var(--muted); margin-bottom: 10px; }
+  .dash-greet { font-size: 13px; color: var(--muted); }
+  .dash-name {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 4px;
+    word-break: break-word;
+  }
+  .dash-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
 
-  .qr-wrap { display: flex; justify-content: center; margin: 18px 0; }
+  .qr-wrap { display: flex; justify-content: center; margin: 10px 0 18px; }
   .qr-wrap img, .qr-wrap canvas {
     background: #fff;
     padding: 10px;
@@ -152,13 +173,28 @@
     letter-spacing: 6px;
   }
 
+  .dash-actions { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .btn-secondary:hover { background: rgba(255, 196, 0, .1); }
+
+  .btn-logout {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+  }
+  .btn-logout:hover { background: rgba(255, 92, 92, .1); }
+
   @media print {
     body { background: #fff; color: #000; }
-    #formCard { display: none; }
-    .btn-secondary, .btn-link { display: none; }
+    .header, #formCard, .dash-actions, .dash-sub { display: none; }
     .card { border: none; box-shadow: none; background: #fff; }
+    .dash-name, .undian-number { color: #000; }
     .undian { background: #fff; border-color: #ccc; }
-    .undian-number, .success-title, .hasil-nama { color: #000; }
   }
 </style>
 </head>
@@ -168,11 +204,14 @@
 
   <header class="header">
     <h1>PENDAFTARAN EVENT</h1>
-    <p class="subtitle">Isi data untuk mendapatkan QR Code &amp; nomor undian</p>
+    <p class="subtitle" id="headerSub">Daftar sekali, dapat QR Code &amp; nomor undian</p>
   </header>
 
-  <!-- ==== FORM ==== -->
+  <!-- ==== FORM (DAFTAR / MASUK) ==== -->
   <section class="card" id="formCard">
+    <h2 class="form-title" id="formTitle">DAFTAR</h2>
+    <p class="form-sub" id="formSub">Belum punya akun? Isi data di bawah ini.</p>
+
     <label class="field">
       <span>Nama Lengkap</span>
       <input id="nama" type="text" placeholder="Masukkan nama lengkap" maxlength="60" autocomplete="name">
@@ -184,13 +223,19 @@
     </label>
 
     <button id="btnDaftar" type="button">DAFTAR</button>
+
+    <button class="switch-link" type="button" id="btnSwitch">
+      <span id="switchText">Sudah punya akun? <b>MASUK</b></span>
+    </button>
+
     <div id="message" class="message"></div>
   </section>
 
-  <!-- ==== HASIL ==== -->
-  <section class="card result" id="resultCard">
-    <h2 class="success-title">Pendaftaran Berhasil 🎉</h2>
-    <p class="hasil-nama">Nama: <strong id="hasilNama"></strong></p>
+  <!-- ==== DASHBOARD ==== -->
+  <section class="card dashboard" id="dashCard">
+    <p class="dash-greet">Selamat datang,</p>
+    <h2 class="dash-name" id="dashNama"></h2>
+    <p class="dash-sub" id="dashSub">Berikut QR Code &amp; nomor undian Anda</p>
 
     <div class="qr-wrap"><div id="qrcode"></div></div>
 
@@ -199,27 +244,72 @@
       <span class="undian-number" id="nomorUndian"></span>
     </div>
 
-    <button class="btn-secondary" type="button" onclick="window.print()">SIMPAN / CETAK</button>
-    <button class="btn-link" type="button" id="btnUlang">Daftar lagi</button>
+    <div class="dash-actions">
+      <button class="btn-secondary" type="button" onclick="window.print()">SIMPAN / CETAK</button>
+      <button class="btn-secondary" type="button" id="btnRefresh">⟳ Refresh</button>
+      <button class="btn-logout" type="button" id="btnLogout">Logout</button>
+    </div>
   </section>
 
 </div>
 
 <script>
   var API_URL = "https://script.google.com/macros/s/AKfycbyg3sDxkMVUHMQbQGFZIXdOfhm2VACuM-rr8FMYO12eBlpEa3REXJ-ctN5HlqXok1lCUw/exec";
+  var SESSION_KEY = "pesertaDashboard";
 
   window.addEventListener("DOMContentLoaded", function () {
 
-    var elNama  = document.getElementById("nama");
-    var elPin   = document.getElementById("pin");
-    var elMsg   = document.getElementById("message");
-    var btn     = document.getElementById("btnDaftar");
-    var btnUlang= document.getElementById("btnUlang");
+    var elNama     = document.getElementById("nama");
+    var elPin      = document.getElementById("pin");
+    var elMsg      = document.getElementById("message");
+    var btn        = document.getElementById("btnDaftar");
+    var btnSwitch  = document.getElementById("btnSwitch");
+    var btnRefresh = document.getElementById("btnRefresh");
+    var btnLogout  = document.getElementById("btnLogout");
 
-    btn.addEventListener("click", daftar);
-    btnUlang.addEventListener("click", daftarLagi);
+    // mode: "daftar" atau "masuk"
+    var mode = "daftar";
 
-    function daftar() {
+    btn.addEventListener("click", submit);
+    btnSwitch.addEventListener("click", toggleMode);
+    btnRefresh.addEventListener("click", refresh);
+    btnLogout.addEventListener("click", logout);
+
+    // Kalau ada sesi tersimpan -> langsung tampil dashboard
+    var saved = sessionStorage.getItem(SESSION_KEY);
+    if (saved) {
+      try { tampilkanDashboard(JSON.parse(saved)); }
+      catch (e) { sessionStorage.removeItem(SESSION_KEY); }
+    }
+
+    // ===== Ganti mode DAFTAR <-> MASUK =====
+    function toggleMode() {
+      mode = (mode === "daftar") ? "masuk" : "daftar";
+      setMessage("", "");
+      elNama.value = "";
+      elPin.value  = "";
+
+      var formTitle = document.getElementById("formTitle");
+      var formSub   = document.getElementById("formSub");
+      var switchText= document.getElementById("switchText");
+
+      if (mode === "daftar") {
+        formTitle.textContent = "DAFTAR";
+        formSub.textContent   = "Belum punya akun? Isi data di bawah ini.";
+        btn.textContent       = "DAFTAR";
+        switchText.innerHTML  = 'Sudah punya akun? <b>MASUK</b>';
+      } else {
+        formTitle.textContent = "MASUK";
+        formSub.textContent   = "Masukkan Nama & PIN Anda untuk melihat QR Code.";
+        btn.textContent       = "MASUK";
+        switchText.innerHTML  = 'Belum punya akun? <b>DAFTAR</b>';
+      }
+
+      elNama.focus();
+    }
+
+    // ===== Kirim (DAFTAR atau MASUK) =====
+    function submit() {
       var nama = elNama.value.trim();
       var pin  = elPin.value.trim();
 
@@ -240,19 +330,22 @@
       btn.textContent = "MEMPROSES...";
       setMessage("Sedang mengirim data...", "info");
 
+      // mode daftar & masuk pakai endpoint yang sama,
+      // backend otomatis: baru -> daftar, sudah ada -> login
       fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ nama: nama, pin: pin })
+        body: JSON.stringify({ nama: nama, pin: pin, aksi: mode })
       })
       .then(function (res) { return res.json(); })
       .then(function (data) {
         if (!data.success) {
-          setMessage(data.message || "Pendaftaran gagal.", "error");
+          setMessage(data.message || "Gagal.", "error");
           resetButton();
           return;
         }
-        tampilkanHasil(data);
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify(data));
+        tampilkanDashboard(data);
       })
       .catch(function (err) {
         console.error(err);
@@ -261,11 +354,20 @@
       });
     }
 
-    function tampilkanHasil(data) {
+    // ===== Tampilkan dashboard =====
+    function tampilkanDashboard(data) {
       document.getElementById("formCard").style.display = "none";
 
-      document.getElementById("hasilNama").textContent   = data.nama;
+      document.getElementById("dashNama").textContent    = data.nama;
       document.getElementById("nomorUndian").textContent = data.nomorUndian;
+
+      // Info mode: baru daftar atau kembali login
+      var dashSub = document.getElementById("dashSub");
+      if (data.status === "login") {
+        dashSub.textContent = "Selamat datang kembali! Ini QR Code & nomor undian Anda.";
+      } else {
+        dashSub.textContent = "Pendaftaran berhasil! Simpan QR Code & nomor undian Anda.";
+      }
 
       var qrBox = document.getElementById("qrcode");
       qrBox.innerHTML = "";
@@ -278,28 +380,28 @@
         correctLevel: QRCode.CorrectLevel.H
       });
 
-      document.getElementById("resultCard").classList.add("show");
+      document.getElementById("dashCard").classList.add("show");
     }
 
-    function daftarLagi() {
-      elNama.value = "";
-      elPin.value  = "";
-      document.getElementById("qrcode").innerHTML = "";
-      document.getElementById("resultCard").classList.remove("show");
-      document.getElementById("formCard").style.display = "block";
-
-      setMessage("", "");
-      resetButton();
-      elNama.focus();
+    // ===== Refresh page (dashboard tetap tampil) =====
+    function refresh() {
+      location.reload();
     }
 
+    // ===== Logout (hapus sesi -> kembali ke form) =====
+    function logout() {
+      sessionStorage.removeItem(SESSION_KEY);
+      location.reload();
+    }
+
+    // ===== Helper =====
     function setMessage(text, type) {
       elMsg.textContent = text;
       elMsg.className = "message" + (type ? " " + type : "");
     }
 
     function resetButton() {
-      btn.textContent = "DAFTAR";
+      btn.textContent = (mode === "daftar") ? "DAFTAR" : "MASUK";
       btn.disabled = false;
     }
 
