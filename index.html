@@ -7,249 +7,105 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   :root {
-    --card: #1a1a1f;
-    --border: #2c2c34;
-    --accent: #ffc400;
-    --text: #f5f5f5;
-    --muted: #9a9aa5;
-    --danger: #ff5c5c;
+    --card: #1a1a1f; --border: #2c2c34; --accent: #ffc400;
+    --text: #f5f5f5; --muted: #9a9aa5; --danger: #ff5c5c;
   }
-
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
     background: radial-gradient(circle at top, #1a1a22 0%, #0d0d0f 60%);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
+    color: var(--text); min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
   }
-
   .container { width: 100%; max-width: 420px; }
-
   .header { text-align: center; margin-bottom: 22px; }
-  .header h1 {
-    font-size: 22px;
-    letter-spacing: 2px;
-    font-weight: 800;
-    color: var(--accent);
-  }
+  .header h1 { font-size: 22px; letter-spacing: 2px; font-weight: 800; color: var(--accent); }
   .subtitle { margin-top: 6px; font-size: 13px; color: var(--muted); }
-
   .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 22px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, .45);
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 22px; box-shadow: 0 20px 50px rgba(0,0,0,.45);
   }
-
-  /* ===== Form ===== */
-  .form-title {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--accent);
-    text-align: center;
-    margin-bottom: 4px;
-  }
-  .form-sub {
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-    margin-bottom: 20px;
-  }
-
+  .form-title { font-size: 18px; font-weight: 800; color: var(--accent); text-align: center; margin-bottom: 4px; }
+  .form-sub { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 20px; }
   .field { display: block; margin-bottom: 16px; }
-  .field span {
-    display: block;
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
+  .field span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
   .field input {
-    width: 100%;
-    padding: 14px 16px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    background: #101014;
-    color: var(--text);
-    font-size: 15px;
-    outline: none;
+    width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
+    background: #101014; color: var(--text); font-size: 15px; outline: none;
     transition: border .2s, box-shadow .2s;
   }
-  .field input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(255, 196, 0, .15);
-  }
-
+  .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,196,0,.15); }
   button {
-    width: 100%;
-    padding: 15px;
-    border: none;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: background .2s, transform .1s;
+    width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 15px;
+    font-weight: 700; letter-spacing: 1px; cursor: pointer; transition: background .2s, transform .1s;
   }
   button:active { transform: scale(.98); }
-
-  #btnDaftar { background: var(--accent); color: #111; margin-top: 6px; }
-  #btnDaftar:hover { background: #ffd23f; }
-  #btnDaftar:disabled { opacity: .6; cursor: not-allowed; }
-
+  #btnSubmit { background: var(--accent); color: #111; margin-top: 6px; }
+  #btnSubmit:hover { background: #ffd23f; }
+  #btnSubmit:disabled { opacity: .6; cursor: not-allowed; }
   .switch-link {
-    display: block;
-    width: 100%;
-    margin-top: 14px;
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0;
-    text-align: center;
-    cursor: pointer;
-    text-decoration: underline;
-    padding: 6px;
+    display: block; width: 100%; margin-top: 14px; background: transparent; border: none;
+    color: var(--muted); font-size: 13px; font-weight: 500; letter-spacing: 0;
+    text-align: center; cursor: pointer; text-decoration: underline; padding: 6px;
   }
   .switch-link:hover { color: var(--text); }
   .switch-link b { color: var(--accent); }
-
-  .message {
-    margin-top: 14px;
-    font-size: 13px;
-    text-align: center;
-    min-height: 18px;
-  }
+  .message { margin-top: 14px; font-size: 13px; text-align: center; min-height: 18px; }
   .message.error { color: var(--danger); }
   .message.info  { color: var(--muted); }
-
-  /* ===== Dashboard ===== */
   .dashboard { display: none; text-align: center; }
   .dashboard.show { display: block; animation: fadeIn .35s ease; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   .dash-greet { font-size: 13px; color: var(--muted); }
-  .dash-name {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--accent);
-    margin-bottom: 4px;
-    word-break: break-word;
-  }
+  .dash-name { font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 4px; word-break: break-word; }
   .dash-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+  .qr-wrap { display: flex; justify-content: center; margin: 10px 0 18px; }
+  .qr-wrap img, .qr-wrap canvas { background: #fff; padding: 10px; border-radius: 12px; }
 
-  .qr-wrap {
-    display: flex;
-    justify-content: center;
-    margin: 10px 0 18px;
+  .undian-box {
+    border: 1px dashed var(--border); border-radius: 14px; background: #101014;
+    padding: 16px; text-align: center;
   }
-  .qr-wrap img, .qr-wrap canvas {
-    background: #fff;
-    padding: 10px;
-    border-radius: 12px;
+  .undian-label { font-size: 12px; letter-spacing: 2px; color: var(--muted); display: block; margin-bottom: 10px; }
+  .undian-empty { font-size: 13px; color: var(--muted); }
+  .undian-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .undian-chip {
+    font-family: monospace; font-size: 18px; font-weight: 800; letter-spacing: 3px;
+    color: var(--accent); background: rgba(255,196,0,.1); border-radius: 8px; padding: 8px 12px;
   }
-
-  .undian {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    padding: 16px;
-    border: 1px dashed var(--border);
-    border-radius: 14px;
-    background: #101014;
-  }
-  .undian-label { font-size: 12px; letter-spacing: 2px; color: var(--muted); }
-  .undian-number {
-    font-size: 34px;
-    font-weight: 800;
-    color: var(--accent);
-    letter-spacing: 6px;
-  }
+  .undian-count { font-size: 12px; color: var(--muted); margin-top: 10px; }
 
   .dash-actions { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+  .btn-secondary { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+  .btn-secondary:hover { background: rgba(255,196,0,.1); }
+  .btn-logout { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn-logout:hover { background: rgba(255,92,92,.1); }
 
-  .btn-secondary {
-    background: transparent;
-    color: var(--accent);
-    border: 1px solid var(--accent);
-  }
-  .btn-secondary:hover { background: rgba(255, 196, 0, .1); }
-
-  .btn-logout {
-    background: transparent;
-    color: var(--danger);
-    border: 1px solid var(--danger);
-  }
-  .btn-logout:hover { background: rgba(255, 92, 92, .1); }
-
-  /* ===== Modal Konfirmasi ===== */
   .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, .7);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    z-index: 100;
+    position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none;
+    align-items: center; justify-content: center; padding: 24px; z-index: 100;
   }
   .modal-overlay.show { display: flex; animation: fadeIn .2s ease; }
-
   .modal-box {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 18px;
-    padding: 24px;
-    max-width: 340px;
-    width: 100%;
-    text-align: center;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, .6);
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 24px; max-width: 340px; width: 100%; text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,.6);
   }
   .modal-icon { font-size: 34px; margin-bottom: 8px; }
-  .modal-title {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
-  .modal-text {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 20px;
-    line-height: 1.5;
-  }
+  .modal-title { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+  .modal-text { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
   .modal-actions { display: flex; flex-direction: column; gap: 10px; }
-
-  .btn-danger {
-    background: var(--danger);
-    color: #fff;
-  }
+  .btn-danger { background: var(--danger); color: #fff; }
   .btn-danger:hover { background: #ff7070; }
-
-  .btn-cancel {
-    background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
-  }
+  .btn-cancel { background: transparent; color: var(--muted); border: 1px solid var(--border); }
   .btn-cancel:hover { color: var(--text); border-color: var(--muted); }
-
   @media print {
     body { background: #fff; color: #000; }
     .header, #formCard, .dash-actions, .dash-sub, .modal-overlay { display: none; }
     .card { border: none; box-shadow: none; background: #fff; }
-    .dash-name, .undian-number { color: #000; }
-    .undian { background: #fff; border-color: #ccc; }
+    .dash-name, .undian-chip { color: #000; }
+    .undian-box { background: #fff; border-color: #ccc; }
+    .undian-chip { background: #eee; }
   }
 </style>
 </head>
@@ -259,10 +115,9 @@
 
   <header class="header">
     <h1>PENDAFTARAN EVENT</h1>
-    <p class="subtitle" id="headerSub">Daftar sekali, dapat QR Code &amp; nomor undian</p>
+    <p class="subtitle" id="headerSub">Daftar sekali, dapat QR Code &amp; kupon undian</p>
   </header>
 
-  <!-- ==== FORM (DAFTAR / MASUK) ==== -->
   <section class="card" id="formCard">
     <h2 class="form-title" id="formTitle">DAFTAR</h2>
     <p class="form-sub" id="formSub">Belum punya akun? Isi data di bawah ini.</p>
@@ -286,17 +141,17 @@
     <div id="message" class="message"></div>
   </section>
 
-  <!-- ==== DASHBOARD ==== -->
   <section class="card dashboard" id="dashCard">
     <p class="dash-greet">Selamat datang,</p>
     <h2 class="dash-name" id="dashNama"></h2>
-    <p class="dash-sub" id="dashSub">Berikut QR Code &amp; nomor undian Anda</p>
+    <p class="dash-sub" id="dashSub">Berikut QR Code &amp; kupon undian Anda</p>
 
     <div class="qr-wrap" id="qrWrap"><div id="qrcode"></div></div>
 
-    <div class="undian">
+    <div class="undian-box">
       <span class="undian-label">NOMOR UNDIAN ANDA</span>
-      <span class="undian-number" id="nomorUndian"></span>
+      <div class="undian-grid" id="undianGrid"></div>
+      <div class="undian-count" id="undianCount"></div>
     </div>
 
     <div class="dash-actions">
@@ -309,7 +164,6 @@
 
 </div>
 
-<!-- ==== MODAL KONFIRMASI LOGOUT ==== -->
 <div class="modal-overlay" id="logoutModal">
   <div class="modal-box">
     <div class="modal-icon">🚪</div>
@@ -339,11 +193,11 @@
     var btnRefresh  = document.getElementById("btnRefresh");
     var btnLogout   = document.getElementById("btnLogout");
 
-    var logoutModal  = document.getElementById("logoutModal");
-    var btnConfirm   = document.getElementById("btnConfirmLogout");
-    var btnCancel    = document.getElementById("btnCancelLogout");
+    var logoutModal = document.getElementById("logoutModal");
+    var btnConfirm  = document.getElementById("btnConfirmLogout");
+    var btnCancel   = document.getElementById("btnCancelLogout");
 
-    var mode = "daftar"; // "daftar" atau "masuk"
+    var mode = "daftar";
     var currentData = null;
 
     btnSubmit.addEventListener("click", submit);
@@ -354,45 +208,40 @@
     btnConfirm.addEventListener("click", doLogout);
     btnCancel.addEventListener("click", function () { logoutModal.classList.remove("show"); });
 
-    // Klik area luar modal = batal
     logoutModal.addEventListener("click", function (e) {
       if (e.target === logoutModal) logoutModal.classList.remove("show");
     });
 
-    // Kalau ada sesi -> langsung dashboard
     var saved = sessionStorage.getItem(SESSION_KEY);
     if (saved) {
       try { tampilkanDashboard(JSON.parse(saved)); }
       catch (e) { sessionStorage.removeItem(SESSION_KEY); }
     }
 
-    // ===== Ganti mode =====
     function toggleMode() {
       mode = (mode === "daftar") ? "masuk" : "daftar";
       setMessage("", "");
       elNama.value = "";
       elPin.value  = "";
 
-      var formTitle = document.getElementById("formTitle");
-      var formSub   = document.getElementById("formSub");
-      var switchText= document.getElementById("switchText");
+      var formTitle  = document.getElementById("formTitle");
+      var formSub    = document.getElementById("formSub");
+      var switchText = document.getElementById("switchText");
 
       if (mode === "daftar") {
-        formTitle.textContent = "DAFTAR";
-        formSub.textContent   = "Belum punya akun? Isi data di bawah ini.";
-        btnSubmit.textContent = "DAFTAR";
-        switchText.innerHTML  = 'Sudah punya akun? <b>MASUK</b>';
+        formTitle.textContent  = "DAFTAR";
+        formSub.textContent    = "Belum punya akun? Isi data di bawah ini.";
+        btnSubmit.textContent  = "DAFTAR";
+        switchText.innerHTML   = 'Sudah punya akun? <b>MASUK</b>';
       } else {
-        formTitle.textContent = "MASUK";
-        formSub.textContent   = "Masukkan Nama & PIN Anda untuk melihat QR Code.";
-        btnSubmit.textContent = "MASUK";
-        switchText.innerHTML  = 'Belum punya akun? <b>DAFTAR</b>';
+        formTitle.textContent  = "MASUK";
+        formSub.textContent    = "Masukkan Nama & PIN Anda untuk melihat QR Code.";
+        btnSubmit.textContent  = "MASUK";
+        switchText.innerHTML   = 'Belum punya akun? <b>DAFTAR</b>';
       }
-
       elNama.focus();
     }
 
-    // ===== Submit =====
     function submit() {
       var nama = elNama.value.trim();
       var pin  = elPin.value.trim();
@@ -436,18 +285,16 @@
       });
     }
 
-    // ===== Tampilkan dashboard =====
     function tampilkanDashboard(data) {
       currentData = data;
 
       document.getElementById("formCard").style.display = "none";
-      document.getElementById("dashNama").textContent    = data.nama;
-      document.getElementById("nomorUndian").textContent = data.nomorUndian;
+      document.getElementById("dashNama").textContent = data.nama;
 
       var dashSub = document.getElementById("dashSub");
       dashSub.textContent = (data.status === "login")
-        ? "Selamat datang kembali! Ini QR Code & nomor undian Anda."
-        : "Pendaftaran berhasil! Simpan QR Code & nomor undian Anda.";
+        ? "Selamat datang kembali! Ini QR Code & kupon undian Anda."
+        : "Pendaftaran berhasil! Simpan QR Code Anda.";
 
       var qrBox = document.getElementById("qrcode");
       qrBox.innerHTML = "";
@@ -460,22 +307,38 @@
         correctLevel: QRCode.CorrectLevel.H
       });
 
+      renderUndian(data.nomorUndianList || []);
+
       document.getElementById("dashCard").classList.add("show");
     }
 
-    // ===== Download QR sebagai PNG =====
+    function renderUndian(list) {
+      var grid  = document.getElementById("undianGrid");
+      var count = document.getElementById("undianCount");
+      grid.innerHTML = "";
+
+      if (!list || list.length === 0) {
+        grid.innerHTML = '<span class="undian-empty">Belum ada kupon. Silakan hubungi panitia setelah membeli merch.</span>';
+        count.textContent = "";
+        return;
+      }
+
+      list.forEach(function (n) {
+        var chip = document.createElement("span");
+        chip.className = "undian-chip";
+        chip.textContent = n;
+        grid.appendChild(chip);
+      });
+
+      count.textContent = "Total " + list.length + " kupon";
+    }
+
     function downloadQR() {
       var canvas = document.querySelector("#qrcode canvas");
       var img    = document.querySelector("#qrcode img");
 
-      if (canvas) {
-        triggerDownload(canvas.toDataURL("image/png"), buildFileName());
-        return;
-      }
-      if (img && img.src) {
-        triggerDownload(img.src, buildFileName());
-        return;
-      }
+      if (canvas) { triggerDownload(canvas.toDataURL("image/png"), buildFileName()); return; }
+      if (img && img.src) { triggerDownload(img.src, buildFileName()); return; }
       setMessage("QR belum siap, coba lagi.", "error");
     }
 
@@ -493,18 +356,13 @@
       return "QR_" + nm + ".png";
     }
 
-    // ===== Refresh =====
-    function refresh() {
-      location.reload();
-    }
+    function refresh() { location.reload(); }
 
-    // ===== Logout (dikonfirmasi) =====
     function doLogout() {
       sessionStorage.removeItem(SESSION_KEY);
       location.reload();
     }
 
-    // ===== Helper =====
     function setMessage(text, type) {
       elMsg.textContent = text;
       elMsg.className = "message" + (type ? " " + type : "");
