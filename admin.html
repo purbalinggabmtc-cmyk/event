@@ -84,7 +84,7 @@
 
   .loader { text-align: center; color: var(--muted); font-size: 13px; padding: 16px; }
 
-  /* ====== UNDIAN (BARU) ====== */
+  /* ====== PENGUNDIAN ====== */
   .undian-info {
     display: flex; justify-content: space-between; align-items: center;
     font-size: 13px; color: var(--muted); margin-bottom: 14px;
@@ -93,23 +93,15 @@
   }
   .undian-info strong { color: var(--accent); font-size: 18px; font-family: monospace; }
 
-  .btn-draw {
-    width: 100%; padding: 16px; border: none; border-radius: 14px;
-    background: var(--accent); color: #111; font-weight: 800; font-size: 16px;
-    letter-spacing: 1px; cursor: pointer; transition: background .2s, transform .1s;
-  }
-  .btn-draw:hover { background: #ffd23f; }
-  .btn-draw:active { transform: scale(.98); }
-  .btn-draw:disabled { opacity: .6; cursor: not-allowed; }
-
   .btn-screen {
     display: block; width: 100%; text-align: center; text-decoration: none;
-    margin-top: 10px; padding: 14px; border-radius: 14px;
-    border: 1px solid var(--accent); color: var(--accent);
-    font-weight: 700; font-size: 14px; background: transparent;
-    cursor: pointer; transition: background .2s;
+    padding: 16px; border-radius: 14px;
+    background: var(--accent); color: #111;
+    font-weight: 800; font-size: 15px; letter-spacing: .5px;
+    cursor: pointer; transition: background .2s, transform .1s;
   }
-  .btn-screen:hover { background: rgba(255,196,0,.1); }
+  .btn-screen:hover { background: #ffd23f; }
+  .btn-screen:active { transform: scale(.98); }
 
   .pemenang-terakhir {
     margin-top: 14px; font-size: 13px; color: var(--muted);
@@ -128,7 +120,7 @@
     <p class="subtitle">Kelola kupon &amp; jalankan pengundian</p>
   </header>
 
-  <!-- ====== PENGUNDIAN ====== -->
+  <!-- ====== PENGUNDIAN (hanya link, tanpa tombol tarik) ====== -->
   <section class="card">
     <h2 class="section-title">PENGUNDIAN</h2>
 
@@ -137,10 +129,8 @@
       <strong id="totalPemenang">–</strong>
     </div>
 
-    <button id="btnTarik" class="btn-draw" type="button">🎲 TARIK NOMOR UNDIAN</button>
-
-    <a id="btnLayar" class="btn-screen" href="undian.html" target="_blank" rel="noopener">
-      👁 Buka Layar Pengundian
+    <a id="btnLayar" class="btn-screen" href="undian.html?mode=panitia" target="_blank" rel="noopener">
+      🎲 Buka Layar Pengundian (Panitia)
     </a>
 
     <div class="pemenang-terakhir" id="pemenangTerakhir"></div>
@@ -173,9 +163,8 @@
     var resCard   = document.getElementById("resultCard");
     var resList   = document.getElementById("resultList");
 
-    var btnTarik  = document.getElementById("btnTarik");
-    var elTotal   = document.getElementById("totalPemenang");
-    var elTerakhir= document.getElementById("pemenangTerakhir");
+    var elTotal    = document.getElementById("totalPemenang");
+    var elTerakhir = document.getElementById("pemenangTerakhir");
 
     btnCari.addEventListener("click", cari);
     elQ.addEventListener("keydown", function (e) { if (e.key === "Enter") cari(); });
@@ -323,7 +312,7 @@
         });
     }
 
-    /* ================= UNDIAN ================= */
+    /* ================= UNDIAN (statistik saja) ================= */
     function muatStatistikUndian() {
       apiPost({ aksi: "riwayatPemenang" })
         .then(function (data) {
@@ -342,35 +331,6 @@
         })
         .catch(function () { /* abaikan */ });
     }
-
-    btnTarik.addEventListener("click", function () {
-      if (btnTarik.disabled) return;
-      if (!confirm("Tarik 1 nomor undian sekarang?")) return;
-
-      btnTarik.disabled = true;
-      var teksAsli = btnTarik.textContent;
-      btnTarik.textContent = "⏳ MENGACAK...";
-
-      apiPost({ aksi: "tarikUndian" })
-        .then(function (data) {
-          if (!data.success) {
-            alert("Gagal menarik undian:\n\n" + (data.message || "Tidak diketahui."));
-            return;
-          }
-          alert("🎉 PEMENANG\n\nNomor : " + data.nomorUndian +
-                "\nNama  : " + data.nama +
-                "\nWaktu : " + data.waktu);
-          muatStatistikUndian();
-        })
-        .catch(function (err) {
-          console.error(err);
-          alert("Gagal terhubung ke server.");
-        })
-        .finally(function () {
-          btnTarik.disabled = false;
-          btnTarik.textContent = teksAsli;
-        });
-    });
 
     // Muat statistik saat halaman dibuka
     muatStatistikUndian();
