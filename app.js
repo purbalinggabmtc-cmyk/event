@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/16y7qEu5b_Y88BBc2YYNlCNsGGkUCMIzpmst6YHXo4cc/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyg3sDxkMVUHMQbQGFZIXdOfhm2VACuM-rr8FMYO12eBlpEa3REXJ-ctN5HlqXok1lCUw/exec";
 
 function daftar() {
   const nama = document.getElementById("nama").value.trim();
