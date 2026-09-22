@@ -322,7 +322,7 @@
     elBadge.classList.add("show");
   }
 
-  /* ====== Animasi live drawing ====== */
+  /* ====== Animasi live drawing (semua kotak berhenti SERENTAK) ====== */
   function jalankanAnimasi(nomorFinal, namaFinal) {
     if (isAnimating) return;
     isAnimating = true;
@@ -334,29 +334,40 @@
     elWait.textContent = "Sedang mengacak nomor...";
     resetDigits();
 
-    var finalArr  = String(nomorFinal).toUpperCase().split("");
-    var stopTimes = [1900, 2400, 2900, 3450];
-    var tickers   = [];
+    var finalArr = String(nomorFinal).toUpperCase().split("");
 
-    digitBoxes.forEach(function (box, i) {
+    // Durasi total animasi (ms)
+    var DURASI = 3400;
+
+    // ==== Ticker: SEMUA kotak berganti karakter acak bareng ====
+    // Satu interval meng-update semua kotak sekaligus.
+    var waktuMulai = Date.now();
+    var ticker = setInterval(function () {
+      digitBoxes.forEach(function (box, i) {
+        // tampilkan karakter acak
+        setDigit(i, acakChar());
+      });
+    }, 60);
+
+    // beri efek visual roll di semua kotak
+    digitBoxes.forEach(function (box) {
       box.classList.add("roll");
-      digitInners[i].classList.add("spin");
-      var t = setInterval(function () { setDigit(i, acakChar()); }, 55 + i * 8);
-      tickers.push(t);
     });
 
-    stopTimes.forEach(function (ms, i) {
-      setTimeout(function () {
-        clearInterval(tickers[i]);
+    // ==== Berhenti SERENTAK: semua kotak kunci ke karakter final ====
+    setTimeout(function () {
+      clearInterval(ticker);
+
+      digitBoxes.forEach(function (box, i) {
+        box.classList.remove("roll");
+        box.classList.add("hit");
         digitInners[i].classList.remove("spin");
         digitInners[i].textContent = finalArr[i] || "–";
-        digitBoxes[i].classList.add("hit");
-        digitBoxes[i].classList.remove("roll");
-        if (i === digitBoxes.length - 1) finishReveal(namaFinal);
-      }, ms);
-    });
-  }
+      });
 
+      finishReveal(namaFinal);
+    }, DURASI);
+  }
   function finishReveal(nama) {
     elCard.classList.remove("rolling");
     elCard.classList.add("win");
