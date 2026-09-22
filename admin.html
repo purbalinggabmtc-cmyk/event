@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Panitia</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --card: #1a1a1f; --border: #2c2c34; --accent: #ffc400;
+    --text: #f5f5f5; --muted: #9a9aa5; --danger: #ff5c5c; --ok: #4ade80;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: radial-gradient(circle at top, #1a1a22 0%, #0d0d0f 60%);
+    color: var(--text); min-height: 100vh;
+    display: flex; align-items: flex-start; justify-content: center; padding: 24px;
+  }
+  .container { width: 100%; max-width: 480px; }
+
+  .header { text-align: center; margin-bottom: 22px; }
+  .header h1 { font-size: 20px; letter-spacing: 2px; font-weight: 800; color: var(--accent); }
+  .subtitle { margin-top: 6px; font-size: 13px; color: var(--muted); }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px;
+    padding: 22px; box-shadow: 0 20px 50px rgba(0,0,0,.45); margin-bottom: 18px;
+  }
+
+  h2.section-title {
+    font-size: 15px; font-weight: 800; color: var(--accent);
+    margin-bottom: 14px; letter-spacing: 1px;
+  }
+
+  .search-row { display: flex; gap: 10px; }
+  .search-row input {
+    flex: 1; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--border);
+    background: #101014; color: var(--text); font-size: 15px; outline: none;
+  }
+  .search-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,196,0,.15); }
+  .search-row button {
+    padding: 0 20px; border: none; border-radius: 12px; background: var(--accent);
+    color: #111; font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  .search-row button:hover { background: #ffd23f; }
+
+  .message { margin-top: 12px; font-size: 13px; text-align: center; min-height: 18px; }
+  .message.error { color: var(--danger); }
+  .message.ok    { color: var(--ok); }
+  .message.info  { color: var(--muted); }
+
+  .result-list { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+  .peserta-item {
+    border: 1px solid var(--border); border-radius: 14px; padding: 16px;
+    background: #101014;
+  }
+  .peserta-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .peserta-nama { font-size: 16px; font-weight: 700; color: var(--text); word-break: break-word; }
+  .peserta-kupon {
+    font-size: 12px; color: var(--accent); white-space: nowrap;
+    border: 1px solid var(--accent); border-radius: 999px; padding: 4px 10px;
+  }
+  .peserta-id { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .nomor-box {
+    margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .nomor-chip {
+    font-size: 12px; letter-spacing: 1px; font-weight: 700; color: var(--accent);
+    background: rgba(255,196,0,.1); border-radius: 6px; padding: 4px 8px;
+    font-family: monospace;
+  }
+  .nomor-empty { font-size: 12px; color: var(--muted); }
+
+  .btn-add {
+    margin-top: 14px; width: 100%; padding: 13px; border: none; border-radius: 12px;
+    background: var(--accent); color: #111; font-weight: 700; font-size: 14px;
+    letter-spacing: .5px; cursor: pointer; transition: background .2s, transform .1s;
+  }
+  .btn-add:hover { background: #ffd23f; }
+  .btn-add:active { transform: scale(.98); }
+  .btn-add:disabled { opacity: .6; cursor: not-allowed; }
+
+  .loader { text-align: center; color: var(--muted); font-size: 13px; padding: 16px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="header">
+    <h1>PANEL PANITIA</h1>
+    <p class="subtitle">Tambah kupon undian untuk peserta</p>
+  </header>
+
+  <section class="card">
+    <h2 class="section-title">CARI PESERTA</h2>
+    <div class="search-row">
+      <input id="q" type="text" placeholder="Ketik nama peserta..." maxlength="60">
+      <button id="btnCari" type="button">CARI</button>
+    </div>
+    <div id="message" class="message"></div>
+  </section>
+
+  <section class="card" id="resultCard" style="display:none;">
+    <h2 class="section-title">HASIL PENCARIAN</h2>
+    <div class="result-list" id="resultList"></div>
+  </section>
+
+</div>
+
+<script>
+  var API_URL = "https://script.google.com/macros/s/AKfycbyg3sDxkMVUHMQbQGFZIXdOfhm2VACuM-rr8FMYO12eBlpEa3REXJ-ctN5HlqXok1lCUw/exec";
+
+  window.addEventListener("DOMContentLoaded", function () {
+    var elQ       = document.getElementById("q");
+    var btnCari   = document.getElementById("btnCari");
+    var elMsg     = document.getElementById("message");
+    var resCard   = document.getElementById("resultCard");
+    var resList   = document.getElementById("resultList");
+
+    btnCari.addEventListener("click", cari);
+    elQ.addEventListener("keydown", function (e) { if (e.key === "Enter") cari(); });
+
+    function setMessage(text, type) {
+      elMsg.textContent = text;
+      elMsg.className = "message" + (type ? " " + type : "");
+    }
+
+    function apiPost(payload) {
+      return fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      }).then(function (r) { return r.json(); });
+    }
+
+    function cari() {
+      var q = elQ.value.trim();
+      if (!q) { setMessage("Ketik nama dulu.", "error"); return; }
+
+      setMessage("Mencari...", "info");
+      btnCari.disabled = true;
+
+      apiPost({ aksi: "cariPeserta", q: q })
+        .then(function (data) {
+          btnCari.disabled = false;
+          if (!data.success) { setMessage(data.message || "Gagal.", "error"); return; }
+
+          if (!data.hasil || data.hasil.length === 0) {
+            resCard.style.display = "none";
+            setMessage("Tidak ada peserta dengan nama itu.", "error");
+            return;
+          }
+
+          setMessage(data.hasil.length + " peserta ditemukan.", "ok");
+          renderHasil(data.hasil);
+        })
+        .catch(function (err) {
+          console.error(err);
+          btnCari.disabled = false;
+          setMessage("Gagal terhubung ke server.", "error");
+        });
+    }
+
+    function renderHasil(list) {
+      resList.innerHTML = "";
+      resCard.style.display = "block";
+
+      list.forEach(function (p) {
+        var item = document.createElement("div");
+        item.className = "peserta-item";
+
+        var head = document.createElement("div");
+        head.className = "peserta-head";
+
+        var nama = document.createElement("div");
+        nama.className = "peserta-nama";
+        nama.textContent = p.nama;
+
+        var kupon = document.createElement("div");
+        kupon.className = "peserta-kupon";
+        kupon.textContent = p.jumlahKupon + " kupon";
+
+        head.appendChild(nama);
+        head.appendChild(kupon);
+
+        var idEl = document.createElement("div");
+        idEl.className = "peserta-id";
+        idEl.textContent = p.idPeserta;
+
+        var nomorBox = document.createElement("div");
+        nomorBox.className = "nomor-box";
+
+        if (p.nomorUndianList && p.nomorUndianList.length) {
+          p.nomorUndianList.forEach(function (n) {
+            var chip = document.createElement("span");
+            chip.className = "nomor-chip";
+            chip.textContent = n;
+            nomorBox.appendChild(chip);
+          });
+        } else {
+          var empty = document.createElement("span");
+          empty.className = "nomor-empty";
+          empty.textContent = "Belum ada kupon";
+          nomorBox.appendChild(empty);
+        }
+
+        var btn = document.createElement("button");
+        btn.className = "btn-add";
+        btn.type = "button";
+        btn.textContent = "＋ Tambah 4 Kupon";
+        btn.addEventListener("click", function () {
+          tambahKupon(p, btn);
+        });
+
+        item.appendChild(head);
+        item.appendChild(idEl);
+        item.appendChild(nomorBox);
+        item.appendChild(btn);
+        resList.appendChild(item);
+      });
+    }
+
+    function tambahKupon(p, btn) {
+      btn.disabled = true;
+      btn.textContent = "MEMPROSES...";
+      setMessage("Menambah 4 kupon untuk " + p.nama + "...", "info");
+
+      apiPost({ aksi: "tambahKupon", idPeserta: p.idPeserta })
+        .then(function (data) {
+          if (!data.success) {
+            setMessage(data.message || "Gagal menambah kupon.", "error");
+            btn.disabled = false;
+            btn.textContent = "＋ Tambah 4 Kupon";
+            return;
+          }
+          setMessage(data.message + " (total " + data.totalKupon + " kupon)", "ok");
+
+          // Update tampilan tanpa fetch ulang
+          p.jumlahKupon  = data.totalKupon;
+          p.nomorUndianList = (p.nomorUndianList || []).concat(data.nomorBaru);
+
+          var item = btn.closest(".peserta-item");
+          item.querySelector(".peserta-kupon").textContent = p.jumlahKupon + " kupon";
+
+          var nomorBox = item.querySelector(".nomor-box");
+          var empty = nomorBox.querySelector(".nomor-empty");
+          if (empty) empty.remove();
+          data.nomorBaru.forEach(function (n) {
+            var chip = document.createElement("span");
+            chip.className = "nomor-chip";
+            chip.textContent = n;
+            nomorBox.appendChild(chip);
+          });
+
+          btn.disabled = false;
+          btn.textContent = "＋ Tambah 4 Kupon";
+        })
+        .catch(function (err) {
+          console.error(err);
+          setMessage("Gagal terhubung ke server.", "error");
+          btn.disabled = false;
+          btn.textContent = "＋ Tambah 4 Kupon";
+        });
+    }
+  });
+</script>
+
+</body>
+</html>
