@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BOLD AFTER DARK</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <img src="logo.png" class="logo" alt="logo">
+    <h2>PENDAFTARAN EVENT</h2>
+
+    <div class="card" id="formCard">
+      <input id="nama" placeholder="Nama Lengkap">
+      <input id="nik5" placeholder="5 Digit Terakhir NIK" maxlength="5" inputmode="numeric">
+      <button onclick="daftar()">DAFTAR</button>
+      <div id="message"></div>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none;">
+      <h3>Pendaftaran Berhasil</h3>
+      <p id="hasilNama"></p>
+      <div id="qrcode" style="margin: 20px auto; display:flex; justify-content:center;"></div>
+      <p>Nomor Undian</p>
+      <div id="nomorUndian" style="font-size:32px;font-weight:bold;letter-spacing:2px;"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
