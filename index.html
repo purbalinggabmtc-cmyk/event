@@ -148,7 +148,11 @@
   }
   .dash-sub { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
 
-  .qr-wrap { display: flex; justify-content: center; margin: 10px 0 18px; }
+  .qr-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0 18px;
+  }
   .qr-wrap img, .qr-wrap canvas {
     background: #fff;
     padding: 10px;
@@ -189,9 +193,60 @@
   }
   .btn-logout:hover { background: rgba(255, 92, 92, .1); }
 
+  /* ===== Modal Konfirmasi ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 100;
+  }
+  .modal-overlay.show { display: flex; animation: fadeIn .2s ease; }
+
+  .modal-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    max-width: 340px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, .6);
+  }
+  .modal-icon { font-size: 34px; margin-bottom: 8px; }
+  .modal-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .modal-text {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  .modal-actions { display: flex; flex-direction: column; gap: 10px; }
+
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+  }
+  .btn-danger:hover { background: #ff7070; }
+
+  .btn-cancel {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .btn-cancel:hover { color: var(--text); border-color: var(--muted); }
+
   @media print {
     body { background: #fff; color: #000; }
-    .header, #formCard, .dash-actions, .dash-sub { display: none; }
+    .header, #formCard, .dash-actions, .dash-sub, .modal-overlay { display: none; }
     .card { border: none; box-shadow: none; background: #fff; }
     .dash-name, .undian-number { color: #000; }
     .undian { background: #fff; border-color: #ccc; }
@@ -222,7 +277,7 @@
       <input id="pin" type="password" inputmode="numeric" maxlength="5" placeholder="Contoh: 12345" autocomplete="off">
     </label>
 
-    <button id="btnDaftar" type="button">DAFTAR</button>
+    <button id="btnSubmit" type="button">DAFTAR</button>
 
     <button class="switch-link" type="button" id="btnSwitch">
       <span id="switchText">Sudah punya akun? <b>MASUK</b></span>
@@ -237,7 +292,7 @@
     <h2 class="dash-name" id="dashNama"></h2>
     <p class="dash-sub" id="dashSub">Berikut QR Code &amp; nomor undian Anda</p>
 
-    <div class="qr-wrap"><div id="qrcode"></div></div>
+    <div class="qr-wrap" id="qrWrap"><div id="qrcode"></div></div>
 
     <div class="undian">
       <span class="undian-label">NOMOR UNDIAN ANDA</span>
@@ -245,12 +300,28 @@
     </div>
 
     <div class="dash-actions">
-      <button class="btn-secondary" type="button" onclick="window.print()">SIMPAN / CETAK</button>
+      <button class="btn-secondary" type="button" id="btnDownload">⬇ Download QR</button>
+      <button class="btn-secondary" type="button" onclick="window.print()">🖨 Simpan / Cetak</button>
       <button class="btn-secondary" type="button" id="btnRefresh">⟳ Refresh</button>
       <button class="btn-logout" type="button" id="btnLogout">Logout</button>
     </div>
   </section>
 
+</div>
+
+<!-- ==== MODAL KONFIRMASI LOGOUT ==== -->
+<div class="modal-overlay" id="logoutModal">
+  <div class="modal-box">
+    <div class="modal-icon">🚪</div>
+    <h3 class="modal-title">Keluar dari Dashboard?</h3>
+    <p class="modal-text">
+      Anda akan keluar dari halaman ini. Pastikan QR Code &amp; nomor undian Anda sudah disimpan.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-danger" type="button" id="btnConfirmLogout">Ya, Logout</button>
+      <button class="btn-cancel" type="button" id="btnCancelLogout">Batal</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -259,30 +330,43 @@
 
   window.addEventListener("DOMContentLoaded", function () {
 
-    var elNama     = document.getElementById("nama");
-    var elPin      = document.getElementById("pin");
-    var elMsg      = document.getElementById("message");
-    var btn        = document.getElementById("btnDaftar");
-    var btnSwitch  = document.getElementById("btnSwitch");
-    var btnRefresh = document.getElementById("btnRefresh");
-    var btnLogout  = document.getElementById("btnLogout");
+    var elNama      = document.getElementById("nama");
+    var elPin       = document.getElementById("pin");
+    var elMsg       = document.getElementById("message");
+    var btnSubmit   = document.getElementById("btnSubmit");
+    var btnSwitch   = document.getElementById("btnSwitch");
+    var btnDownload = document.getElementById("btnDownload");
+    var btnRefresh  = document.getElementById("btnRefresh");
+    var btnLogout   = document.getElementById("btnLogout");
 
-    // mode: "daftar" atau "masuk"
-    var mode = "daftar";
+    var logoutModal  = document.getElementById("logoutModal");
+    var btnConfirm   = document.getElementById("btnConfirmLogout");
+    var btnCancel    = document.getElementById("btnCancelLogout");
 
-    btn.addEventListener("click", submit);
+    var mode = "daftar"; // "daftar" atau "masuk"
+    var currentData = null;
+
+    btnSubmit.addEventListener("click", submit);
     btnSwitch.addEventListener("click", toggleMode);
+    btnDownload.addEventListener("click", downloadQR);
     btnRefresh.addEventListener("click", refresh);
-    btnLogout.addEventListener("click", logout);
+    btnLogout.addEventListener("click", function () { logoutModal.classList.add("show"); });
+    btnConfirm.addEventListener("click", doLogout);
+    btnCancel.addEventListener("click", function () { logoutModal.classList.remove("show"); });
 
-    // Kalau ada sesi tersimpan -> langsung tampil dashboard
+    // Klik area luar modal = batal
+    logoutModal.addEventListener("click", function (e) {
+      if (e.target === logoutModal) logoutModal.classList.remove("show");
+    });
+
+    // Kalau ada sesi -> langsung dashboard
     var saved = sessionStorage.getItem(SESSION_KEY);
     if (saved) {
       try { tampilkanDashboard(JSON.parse(saved)); }
       catch (e) { sessionStorage.removeItem(SESSION_KEY); }
     }
 
-    // ===== Ganti mode DAFTAR <-> MASUK =====
+    // ===== Ganti mode =====
     function toggleMode() {
       mode = (mode === "daftar") ? "masuk" : "daftar";
       setMessage("", "");
@@ -296,19 +380,19 @@
       if (mode === "daftar") {
         formTitle.textContent = "DAFTAR";
         formSub.textContent   = "Belum punya akun? Isi data di bawah ini.";
-        btn.textContent       = "DAFTAR";
+        btnSubmit.textContent = "DAFTAR";
         switchText.innerHTML  = 'Sudah punya akun? <b>MASUK</b>';
       } else {
         formTitle.textContent = "MASUK";
         formSub.textContent   = "Masukkan Nama & PIN Anda untuk melihat QR Code.";
-        btn.textContent       = "MASUK";
+        btnSubmit.textContent = "MASUK";
         switchText.innerHTML  = 'Belum punya akun? <b>DAFTAR</b>';
       }
 
       elNama.focus();
     }
 
-    // ===== Kirim (DAFTAR atau MASUK) =====
+    // ===== Submit =====
     function submit() {
       var nama = elNama.value.trim();
       var pin  = elPin.value.trim();
@@ -326,12 +410,10 @@
         return;
       }
 
-      btn.disabled = true;
-      btn.textContent = "MEMPROSES...";
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = "MEMPROSES...";
       setMessage("Sedang mengirim data...", "info");
 
-      // mode daftar & masuk pakai endpoint yang sama,
-      // backend otomatis: baru -> daftar, sudah ada -> login
       fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -356,18 +438,16 @@
 
     // ===== Tampilkan dashboard =====
     function tampilkanDashboard(data) {
-      document.getElementById("formCard").style.display = "none";
+      currentData = data;
 
+      document.getElementById("formCard").style.display = "none";
       document.getElementById("dashNama").textContent    = data.nama;
       document.getElementById("nomorUndian").textContent = data.nomorUndian;
 
-      // Info mode: baru daftar atau kembali login
       var dashSub = document.getElementById("dashSub");
-      if (data.status === "login") {
-        dashSub.textContent = "Selamat datang kembali! Ini QR Code & nomor undian Anda.";
-      } else {
-        dashSub.textContent = "Pendaftaran berhasil! Simpan QR Code & nomor undian Anda.";
-      }
+      dashSub.textContent = (data.status === "login")
+        ? "Selamat datang kembali! Ini QR Code & nomor undian Anda."
+        : "Pendaftaran berhasil! Simpan QR Code & nomor undian Anda.";
 
       var qrBox = document.getElementById("qrcode");
       qrBox.innerHTML = "";
@@ -383,13 +463,43 @@
       document.getElementById("dashCard").classList.add("show");
     }
 
-    // ===== Refresh page (dashboard tetap tampil) =====
+    // ===== Download QR sebagai PNG =====
+    function downloadQR() {
+      var canvas = document.querySelector("#qrcode canvas");
+      var img    = document.querySelector("#qrcode img");
+
+      if (canvas) {
+        triggerDownload(canvas.toDataURL("image/png"), buildFileName());
+        return;
+      }
+      if (img && img.src) {
+        triggerDownload(img.src, buildFileName());
+        return;
+      }
+      setMessage("QR belum siap, coba lagi.", "error");
+    }
+
+    function triggerDownload(dataUrl, filename) {
+      var a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function buildFileName() {
+      var nm = (currentData && currentData.nama) ? currentData.nama.replace(/\s+/g, "_") : "peserta";
+      return "QR_" + nm + ".png";
+    }
+
+    // ===== Refresh =====
     function refresh() {
       location.reload();
     }
 
-    // ===== Logout (hapus sesi -> kembali ke form) =====
-    function logout() {
+    // ===== Logout (dikonfirmasi) =====
+    function doLogout() {
       sessionStorage.removeItem(SESSION_KEY);
       location.reload();
     }
@@ -401,8 +511,8 @@
     }
 
     function resetButton() {
-      btn.textContent = (mode === "daftar") ? "DAFTAR" : "MASUK";
-      btn.disabled = false;
+      btnSubmit.textContent = (mode === "daftar") ? "DAFTAR" : "MASUK";
+      btnSubmit.disabled = false;
     }
 
   });
