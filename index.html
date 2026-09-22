@@ -18,6 +18,23 @@
     display: flex; align-items: center; justify-content: center; padding: 24px;
   }
   .container { width: 100%; max-width: 420px; }
+
+  /* ===== LOGO — hanya tampil di form daftar/masuk ===== */
+  .brand {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+  .brand.hidden { display: none; }
+  .brand img {
+    max-width: 240px;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,.5));
+  }
+
   .header { text-align: center; margin-bottom: 22px; }
   .header h1 { font-size: 22px; letter-spacing: 2px; font-weight: 800; color: var(--accent); }
   .subtitle { margin-top: 6px; font-size: 13px; color: var(--muted); }
@@ -101,7 +118,7 @@
   .btn-cancel:hover { color: var(--text); border-color: var(--muted); }
   @media print {
     body { background: #fff; color: #000; }
-    .header, #formCard, .dash-actions, .dash-sub, .modal-overlay { display: none; }
+    .header, .brand, #formCard, .dash-actions, .dash-sub, .modal-overlay { display: none; }
     .card { border: none; box-shadow: none; background: #fff; }
     .dash-name, .undian-chip { color: #000; }
     .undian-box { background: #fff; border-color: #ccc; }
@@ -113,8 +130,14 @@
 
 <div class="container">
 
+  <!-- LOGO — hanya tampil di form daftar/masuk -->
+  <div class="brand" id="brandLogo">
+    <img src="logo.png" alt="Bold After Dark">
+  </div>
+
   <header class="header">
     <h1>PENDAFTARAN EVENT</h1>
+    <p class="subtitle" id="headerSub">Daftar sekali, dapat QR Code &amp; kupon undian</p>
   </header>
 
   <section class="card" id="formCard">
@@ -127,7 +150,7 @@
     </label>
 
     <label class="field">
-      <span>5 digit terakhir NIK</span>
+      <span>PIN (5 digit angka)</span>
       <input id="pin" type="password" inputmode="numeric" maxlength="5" placeholder="Contoh: 12345" autocomplete="off">
     </label>
 
@@ -286,6 +309,8 @@
 
     function tampilkanDashboard(data) {
       currentData = data;
+
+      document.getElementById("brandLogo").classList.add("hidden");  // sembunyikan logo
 
       document.getElementById("formCard").style.display = "none";
       document.getElementById("dashNama").textContent = data.nama;
