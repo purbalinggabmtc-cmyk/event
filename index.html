@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>Pendaftaran Event</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -74,14 +74,14 @@
 
   /* >>> TAMBAHAN: gambar bullaes di dalam frame form (diperkecil) <<< */
   .form-footer-img {
-    margin-top: 10px;          /* persempit dari 20px */
-    padding-top: 10px;         /* persempit dari 16px */
+    margin-top: 10px;
+    padding-top: 10px;
     border-top: 1px solid var(--border);
     display: flex;
     justify-content: center;
   }
   .form-footer-img img {
-    width: 55%;                /* perkecil: dari 100% jadi 55% */
+    width: 55%;
     max-width: 55%;
     height: auto;
     object-fit: contain;
@@ -110,6 +110,18 @@
     color: var(--accent); background: rgba(255,196,0,.1); border-radius: 8px; padding: 8px 12px;
   }
   .undian-count { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  /* >>> TAMBAHAN: banner ajakan beli merch <<< */
+  .promo-box {
+    margin-top: 18px; padding: 16px;
+    background: linear-gradient(135deg, rgba(255,196,0,.14), rgba(255,196,0,.05));
+    border: 1px solid rgba(255,196,0,.4); border-radius: 14px;
+    text-align: center;
+  }
+  .promo-icon { font-size: 26px; margin-bottom: 6px; }
+  .promo-title { font-size: 15px; font-weight: 800; color: var(--accent); margin-bottom: 6px; }
+  .promo-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+  .promo-text b { color: var(--accent); }
 
   .dash-actions { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
   /* >>> TAMBAHAN: tombol lihat pengundian <<< */
@@ -147,7 +159,7 @@
   .btn-cancel:hover { color: var(--text); border-color: var(--muted); }
   @media print {
     body { background: #fff; color: #000; }
-    .header, .brand, #formCard, .dash-actions, .dash-sub, .modal-overlay { display: none; }
+    .header, .brand, #formCard, .dash-actions, .dash-sub, .modal-overlay, .promo-box { display: none; }
     .card { border: none; box-shadow: none; background: #fff; }
     .dash-name, .undian-chip { color: #000; }
     .undian-box { background: #fff; border-color: #ccc; }
@@ -171,6 +183,7 @@
   <section class="card" id="formCard">
     <h2 class="form-title" id="formTitle">DAFTAR</h2>
     <p class="form-sub" id="formSub">Belum punya akun? Isi data di bawah ini.</p>
+
     <label class="field">
       <span>Nama Lengkap</span>
       <input id="nama" type="text" placeholder="Masukkan nama lengkap" maxlength="60" autocomplete="name">
@@ -206,6 +219,16 @@
       <span class="undian-label">NOMOR UNDIAN ANDA</span>
       <div class="undian-grid" id="undianGrid"></div>
       <div class="undian-count" id="undianCount"></div>
+    </div>
+
+    <!-- >>> TAMBAHAN: banner ajakan beli merch = 5 kupon ekstra <<< -->
+    <div class="promo-box">
+      <div class="promo-icon">🛒</div>
+      <div class="promo-title">Tambah Peluang Menangmu!</div>
+      <div class="promo-text">
+        Beli <b>merchandise</b> dan dapatkan <b>5 kupon ekstra</b>
+        untuk memperbesar kesempatanmu memenangkan undian! 🎁
+      </div>
     </div>
 
     <div class="dash-actions">
