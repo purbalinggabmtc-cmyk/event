@@ -156,6 +156,9 @@
 <script>
   var API_URL = "https://script.google.com/macros/s/AKfycbyg3sDxkMVUHMQbQGFZIXdOfhm2VACuM-rr8FMYO12eBlpEa3REXJ-ctN5HlqXok1lCUw/exec";
 
+  // >>> TAMBAHAN: jumlah kupon per klik (samakan dgn Code.gs)
+  var KUPON_PER_KLIK = 5;
+
   window.addEventListener("DOMContentLoaded", function () {
     var elQ       = document.getElementById("q");
     var btnCari   = document.getElementById("btnCari");
@@ -257,7 +260,7 @@
         var btn = document.createElement("button");
         btn.className = "btn-add";
         btn.type = "button";
-        btn.textContent = "＋ Tambah 4 Kupon";
+        btn.textContent = "＋ Tambah " + KUPON_PER_KLIK + " Kupon";
         btn.addEventListener("click", function () {
           tambahKupon(p, btn);
         });
@@ -273,14 +276,14 @@
     function tambahKupon(p, btn) {
       btn.disabled = true;
       btn.textContent = "MEMPROSES...";
-      setMessage("Menambah 4 kupon untuk " + p.nama + "...", "info");
+      setMessage("Menambah " + KUPON_PER_KLIK + " kupon untuk " + p.nama + "...", "info");
 
       apiPost({ aksi: "tambahKupon", idPeserta: p.idPeserta })
         .then(function (data) {
           if (!data.success) {
             setMessage(data.message || "Gagal menambah kupon.", "error");
             btn.disabled = false;
-            btn.textContent = "＋ Tambah 4 Kupon";
+            btn.textContent = "＋ Tambah " + KUPON_PER_KLIK + " Kupon";
             return;
           }
           setMessage(data.message + " (total " + data.totalKupon + " kupon)", "ok");
@@ -302,13 +305,13 @@
           });
 
           btn.disabled = false;
-          btn.textContent = "＋ Tambah 4 Kupon";
+          btn.textContent = "＋ Tambah " + KUPON_PER_KLIK + " Kupon";
         })
         .catch(function (err) {
           console.error(err);
           setMessage("Gagal terhubung ke server.", "error");
           btn.disabled = false;
-          btn.textContent = "＋ Tambah 4 Kupon";
+          btn.textContent = "＋ Tambah " + KUPON_PER_KLIK + " Kupon";
         });
     }
 
