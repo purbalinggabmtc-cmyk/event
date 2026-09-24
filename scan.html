@@ -319,14 +319,14 @@
       });
 
       if (semuaSudahDiserahkan) {
-        actionBox.innerHTML = '<div class="merch-status-done">✅ Semua merch sudah diserahkan</div>';
+        actionBox.innerHTML = '<div class="merch-status-done">✅ Semua merch sudah diserahkan.</div>';
         return;
       }
 
       var button = document.createElement("button");
       button.type = "button";
       button.className = "btn-merch-submit";
-      button.textContent = "✓ Semua Merch Sudah Diserahkan";
+      button.textContent = "Serahkan Merch!";
       button.addEventListener("click", function () {
         serahkanSemuaMerch(idPeserta, button);
       });
@@ -349,18 +349,18 @@
         if (!data.success) {
           alert(data.message || "Gagal memperbarui status merch.");
           button.disabled = false;
-          button.textContent = "✓ Semua Merch Sudah Diserahkan";
+          button.textContent = "Serahkan Merch!";
           return;
         }
 
         var actionBox = document.getElementById("merchAction");
-        actionBox.innerHTML = '<div class="merch-status-done">✅ Semua merch sudah diserahkan</div>';
+        actionBox.innerHTML = '<div class="merch-status-done">✅ Semua merch sudah diserahkan.</div>';
       })
       .catch(function (err) {
         console.error(err);
         alert("Gagal terhubung ke server.");
         button.disabled = false;
-        button.textContent = "✓ Semua Merch Sudah Diserahkan";
+        button.textContent = "Serahkan Merch!";
       });
     }
 
