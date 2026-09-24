@@ -111,6 +111,25 @@
   }
   .undian-count { font-size: 12px; color: var(--muted); margin-top: 10px; }
 
+  /* >>> TAMBAHAN: data merch peserta <<< */
+  .merch-box {
+    margin-top: 14px;
+    border: 1px dashed var(--border); border-radius: 14px; background: #101014;
+    padding: 14px 16px; text-align: center;
+  }
+  .merch-label { font-size: 12px; letter-spacing: 2px; color: var(--muted); display: block; margin-bottom: 10px; }
+  .merch-empty { font-size: 13px; color: var(--muted); }
+  .merch-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .merch-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,196,0,.1); border-radius: 8px; padding: 8px 12px;
+  }
+  .merch-size {
+    font-family: monospace; font-size: 18px; font-weight: 800; letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .merch-qty { font-size: 14px; font-weight: 700; color: var(--text); }
+
   /* >>> TAMBAHAN: banner ajakan beli merch <<< */
   .promo-box {
     margin-top: 18px; padding: 16px;
@@ -161,9 +180,10 @@
     body { background: #fff; color: #000; }
     .header, .brand, #formCard, .dash-actions, .dash-sub, .modal-overlay, .promo-box { display: none; }
     .card { border: none; box-shadow: none; background: #fff; }
-    .dash-name, .undian-chip { color: #000; }
-    .undian-box { background: #fff; border-color: #ccc; }
-    .undian-chip { background: #eee; }
+    .dash-name, .undian-chip, .merch-size { color: #000; }
+    .undian-box, .merch-box { background: #fff; border-color: #ccc; }
+    .undian-chip, .merch-chip { background: #eee; }
+    .merch-qty { color: #000; }
   }
 </style>
 </head>
@@ -221,6 +241,12 @@
       <div class="undian-count" id="undianCount"></div>
     </div>
 
+    <!-- >>> TAMBAHAN: data merch peserta <<< -->
+    <div class="merch-box">
+      <span class="merch-label">MERCH</span>
+      <div class="merch-grid" id="merchGrid"></div>
+    </div>
+
     <!-- >>> TAMBAHAN: banner ajakan beli merch = 5 kupon ekstra <<< -->
     <div class="promo-box">
       <div class="promo-icon">🛒</div>
@@ -236,7 +262,6 @@
       <a class="btn-undian" href="undian.html?mode=peserta">👁 Lihat Pengundian</a>
 
       <button class="btn-secondary" type="button" id="btnDownload">⬇ Download QR</button>
-      <button class="btn-secondary" type="button" onclick="window.print()">🖨 Simpan / Cetak</button>
       <button class="btn-secondary" type="button" id="btnRefresh">⟳ Refresh</button>
       <button class="btn-logout" type="button" id="btnLogout">Logout</button>
     </div>
@@ -390,6 +415,7 @@
       });
 
       renderUndian(data.nomorUndianList || []);
+      renderMerch(data.merchList || []);
 
       document.getElementById("dashCard").classList.add("show");
     }
@@ -413,6 +439,42 @@
       });
 
       count.textContent = "Total " + list.length + " kupon";
+    }
+
+    function renderMerch(list) {
+      var grid = document.getElementById("merchGrid");
+      grid.innerHTML = "";
+
+      if (!list || list.length === 0) {
+        grid.innerHTML = '<span class="merch-empty">Belum ada merch.</span>';
+        return;
+      }
+
+      list.forEach(function (item) {
+        var ukuran = String(item.ukuran || "").trim();
+        var jumlah = Number(item.jumlah) || 0;
+
+        if (!ukuran || jumlah <= 0) return;
+
+        var chip = document.createElement("span");
+        chip.className = "merch-chip";
+
+        var labelUkuran = document.createElement("span");
+        labelUkuran.className = "merch-size";
+        labelUkuran.textContent = ukuran;
+
+        var labelJumlah = document.createElement("span");
+        labelJumlah.className = "merch-qty";
+        labelJumlah.textContent = "x" + jumlah;
+
+        chip.appendChild(labelUkuran);
+        chip.appendChild(labelJumlah);
+        grid.appendChild(chip);
+      });
+
+      if (!grid.children.length) {
+        grid.innerHTML = '<span class="merch-empty">Belum ada merch.</span>';
+      }
     }
 
     function downloadQR() {
