@@ -80,6 +80,19 @@
   .merch-empty { font-size: 13px; color: var(--muted); background: #101014;
                  border: 1px dashed var(--border); border-radius: 12px; padding: 14px; }
 
+  /* Tombol penyerahan semua merch peserta */
+  .btn-merch-submit {
+    width: 100%; margin-top: 12px; padding: 14px; border: none; border-radius: 12px;
+    background: var(--ok); color: #102018; font-weight: 800; font-size: 14px; cursor: pointer;
+  }
+  .btn-merch-submit:hover { background: #6ee7a0; }
+  .btn-merch-submit:disabled { opacity: .6; cursor: not-allowed; }
+  .merch-status-done {
+    margin-top: 12px; padding: 13px; border-radius: 12px;
+    background: rgba(74,222,128,.12); border: 1px solid rgba(74,222,128,.45);
+    color: var(--ok); font-size: 14px; font-weight: 800;
+  }
+
   .btn-next {
     width: 100%; margin-top: 16px; padding: 15px; border: none; border-radius: 12px;
     background: var(--accent); color: #111; font-weight: 700; font-size: 15px; cursor: pointer;
@@ -100,10 +113,12 @@
     <div id="reader"></div>
     <button class="toggle-cam" type="button" id="btnToggleCam">⏸ Hentikan Kamera</button>
 
+    <!--
     <div class="manual-row">
       <input id="manualId" type="text" placeholder="Input manual ID (BAD-xxxx)" autocomplete="off">
       <button id="btnManual" type="button">CEK</button>
     </div>
+    -->
 
     <div id="message" class="message"></div>
   </section>
@@ -118,6 +133,7 @@
 
     <div class="merch-title">PESANAN MERCH</div>
     <div class="merch-list" id="merchList"></div>
+    <div id="merchAction"></div>
 
     <button class="btn-next" type="button" id="btnNext">＋ Scan Berikutnya</button>
   </section>
@@ -139,6 +155,7 @@
     var html5Qr = null;
     var scanning = true;
     var busy = false;          // cegah double-scan
+    var currentPesertaId = "";
 
     // ---------- Init kamera ----------
     if (typeof Html5Qrcode !== "undefined") {
@@ -186,19 +203,22 @@
       if (scanning) stopScanner(); else startScanner();
     });
 
+    /*
     btnManual.addEventListener("click", function () {
       var id = elManual.value.trim();
       if (!id) { setMessage("Ketik ID dulu.", "error"); return; }
       processScan(id);
     });
     elManual.addEventListener("keydown", function (e) { if (e.key === "Enter") btnManual.click(); });
+    */
 
     btnNext.addEventListener("click", function () {
       resCard.classList.remove("show");
       camCard.style.display = "block";
-      elManual.value = "";
+      if (elManual) elManual.value = "";
       setMessage("", "");
       busy = false;
+      currentPesertaId = "";
       if (!scanning) startScanner();
     });
 
@@ -237,6 +257,7 @@
 
     function showResult(kind, icon, title, msg, data) {
       camCard.style.display = "none";
+      currentPesertaId = data.idPeserta || "";
 
       var resTitle = document.getElementById("resTitle");
       resTitle.textContent = title;
@@ -255,6 +276,7 @@
       }
 
       renderMerch(data.merchList || []);
+      renderMerchAction(data.merchList || [], currentPesertaId);
       resCard.classList.add("show");
       setMessage("", "");
       // busy tetap true sampai tombol "Scan Berikutnya" -> cegah scan ganda
@@ -283,6 +305,62 @@
         item.appendChild(uk);
         item.appendChild(jml);
         box.appendChild(item);
+      });
+    }
+
+    function renderMerchAction(list, idPeserta) {
+      var actionBox = document.getElementById("merchAction");
+      actionBox.innerHTML = "";
+
+      if (!list || list.length === 0 || !idPeserta) return;
+
+      var semuaSudahDiserahkan = list.every(function (m) {
+        return String(m.statusMerch || "").trim().toLowerCase() === "sudah diserahkan";
+      });
+
+      if (semuaSudahDiserahkan) {
+        actionBox.innerHTML = '<div class="merch-status-done">✅ Semua merch sudah diserahkan</div>';
+        return;
+      }
+
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "btn-merch-submit";
+      button.textContent = "✓ Semua Merch Sudah Diserahkan";
+      button.addEventListener("click", function () {
+        serahkanSemuaMerch(idPeserta, button);
+      });
+      actionBox.appendChild(button);
+    }
+
+    function serahkanSemuaMerch(idPeserta, button) {
+      if (!idPeserta) return;
+
+      button.disabled = true;
+      button.textContent = "MEMPROSES...";
+
+      fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ aksi: "serahkanMerch", idPeserta: idPeserta })
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.success) {
+          alert(data.message || "Gagal memperbarui status merch.");
+          button.disabled = false;
+          button.textContent = "✓ Semua Merch Sudah Diserahkan";
+          return;
+        }
+
+        var actionBox = document.getElementById("merchAction");
+        actionBox.innerHTML = '<div class="merch-status-done">✅ Semua merch sudah diserahkan</div>';
+      })
+      .catch(function (err) {
+        console.error(err);
+        alert("Gagal terhubung ke server.");
+        button.disabled = false;
+        button.textContent = "✓ Semua Merch Sudah Diserahkan";
       });
     }
 
