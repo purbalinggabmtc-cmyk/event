@@ -186,6 +186,10 @@
   var isDrawing   = false;
   var pendingRiwayat = null;
 
+  /* FIX bug animasi ganda antar-tab */
+  var nomorSudahDianimasikan = null;   // nomor terakhir yang sudah diputar di tab INI
+  var menulisPemenang = false;         // true selama panitia menulis via tombol
+
   var elCard    = document.getElementById("slotCard");
   var elNama    = document.getElementById("slotNama");
   var elBadge   = document.getElementById("slotBadge");
@@ -239,27 +243,48 @@
       var total = list.length;
       elLive.textContent = "Live · " + total + " pemenang";
 
+      // Inisialisasi pertama kali
       if (!sudahInit) {
         sudahInit = true;
         jumlahPemenangDikenal = total;
         if (total > 0) {
-          var last = list[total - 1];
-          tampilStatis(last.nomorUndian, last.nama);
+          var last0 = list[total - 1];
+          tampilStatis(last0.nomorUndian, last0.nama);
+          nomorSudahDianimasikan = last0.nomorUndian;
         }
         renderRiwayat(list);
         return;
       }
+
+      // Ada pemenang baru?
       if (total > jumlahPemenangDikenal) {
-        if (isAnimating || isDrawing) return;
         jumlahPemenangDikenal = total;
         var terakhir = list[total - 1];
+
+        // FIX: mode panitia TIDAK memicu animasi dari polling.
+        // Animasi di sisi panitia hanya dari klik tombol tarik.
+        if (IS_PANITIA) {
+          renderRiwayat(list);
+          if (!isDrawing) elWait.textContent = "Menunggu undian berikutnya...";
+          return;
+        }
+
+        // Mode peserta: animasi hanya bila nomor ini belum pernah dianimasikan di tab ini
+        if (menulisPemenang) return;
+        if (nomorSudahDianimasikan === terakhir.nomorUndian) {
+          renderRiwayat(list);
+          return;
+        }
+
+        nomorSudahDianimasikan = terakhir.nomorUndian;
         pendingRiwayat = list;
         jalankanAnimasi(terakhir.nomorUndian, terakhir.nama);
         return;
       }
+
       jumlahPemenangDikenal = total;
       renderRiwayat(list);
-      if (!isDrawing) elWait.textContent = "Menunggu undian berikutnya...";
+      if (!isDrawing && !IS_PANITIA) elWait.textContent = "Menunggu undian berikutnya...";
     })
     .catch(function () {});
   }
@@ -378,6 +403,7 @@
     if (!confirm("Tarik 1 nomor undian sekarang?")) return;
 
     isDrawing = true;
+    menulisPemenang = true;                 // FIX: tandai sedang menulis
     btnTarik.disabled = true;
     btnTarik.textContent = "⏳ MENGACAK...";
     elWait.textContent = "Mengambil daftar nomor...";
@@ -417,6 +443,7 @@
         return;
       }
       jumlahPemenangDikenal = jumlahPemenangDikenal < 0 ? 1 : jumlahPemenangDikenal + 1;
+      nomorSudahDianimasikan = hasil.nomorUndian;   // FIX: catat nomor yang sudah diputar
       pendingRiwayat = null;
       jalankanAnimasi(hasil.nomorUndian, hasil.nama);
 
@@ -469,10 +496,12 @@
       if (list.length > 0) {
         var last = list[list.length - 1];
         tampilStatis(last.nomorUndian, last.nama);
+        nomorSudahDianimasikan = last.nomorUndian;   // FIX: jangan animasi ulang nomor ini
       } else {
         resetDigits();
         elNama.textContent = "Menunggu undian dimulai...";
         elBadge.classList.remove("show");
+        nomorSudahDianimasikan = null;
       }
 
       elWait.textContent = "Data diperbarui. Tekan tombol untuk menarik nomor.";
@@ -488,6 +517,7 @@
 
   function batalTombol() {
     isDrawing = false;
+    menulisPemenang = false;                // FIX: reset penanda
     btnTarik.disabled = false;
     btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
   }
