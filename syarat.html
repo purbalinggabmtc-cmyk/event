@@ -1,53 +1,430 @@
-<!DOCTYPE html>  
-<html lang="id">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
-<title>Hadiah Utama</title>  
-<style>  
-  * { box-sizing: border-box; margin: 0; padding: 0; }  
-  :root {  
-    --bg: #150505; --card: #2a0d0d; --border: #4a1a1a;  
-    --gold: #ffcf40; --gold-soft: #ffe08a; --text: #fff5e6; --muted: #c9a978; --ok: #4ade80;  
-  }  
-  body {  
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;  
-    background: radial-gradient(circle at 50% 0%, #3a1010 0%, #150505 60%);  
-    color: var(--text); min-height: 100vh; padding: 20px;  
-    display: flex; flex-direction: column; align-items: center;  
-    overflow-x: hidden;  
-  }  
-  .container { width: 100%; max-width: 460px; position: relative; z-index: 2; }  
-  .btn-close {  
-    position: absolute; top: 0; right: 0;  
-    width: 38px; height: 38px; border-radius: 50%;  
-    background: rgba(255,255,255,.06); border: 1px solid var(--border);  
-    color: var(--muted); font-size: 20px; line-height: 1;  
-    display: flex; align-items: center; justify-content: center;  
-    cursor: pointer; text-decoration: none;  
-    transition: background .2s, color .2s, border-color .2s;  
-  }  
-  .btn-close:hover { background: rgba(255,92,92,.18); color: #ff5c5c; border-color: rgba(255,92,92,.5); }  
-  .header { text-align: center; margin-bottom: 18px; padding-top: 4px; }  
-  .header h1 { font-size: 19px; letter-spacing: 4px; font-weight: 900; color: var(--gold); text-shadow: 0 0 18px rgba(255,207,64,.5); }  
-  .header .sub { margin-top: 6px; font-size: 11px; letter-spacing: 3px; color: var(--muted); }  
-  .header .stats { margin-top: 8px; font-size: 12px; color: var(--muted); }  
-  .dot-live {  
-    display: inline-block; width: 8px; height: 8px; border-radius: 50%;  
-    background: var(--ok); margin-right: 6px; animation: blink 1.2s infinite;  
-  }  
-  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }  
-  .crown { text-align: center; font-size: 34px; margin-bottom: 4px; animation: floaty 2.4s ease-in-out infinite; }  
-  @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }  
-  .slot-card {  
-    background: linear-gradient(180deg, var(--card), #1c0808);  
-    border: 1px solid var(--border); border-radius: 22px;  
-    padding: 30px 18px; text-align: center; margin-bottom: 18px;  
-    box-shadow: 0 24px 60px rgba(0,0,0,.6);  
-    position: relative; overflow: hidden;  
-    transition: border-color .4s, box-shadow .4s;  
-  }  
-  .slot-card.rolling { border-color: rgba(255,207,64,.6); box-shadow: 0 0 55px rgba(255,207,64,.3), 0 24px 60px rgba(0,0,0,.6); }  
-  .slot-card.win {  
-    border-color: rgba(255,207,64,.95);  
-    box-shadow: 0 0 70px rgba(
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hadiah Utama</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #150505; --card: #2a0d0d; --border: #4a1a1a;
+    --gold: #ffcf40; --gold-soft: #ffe08a; --text: #fff5e6; --muted: #c9a978; --ok: #4ade80;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: radial-gradient(circle at 50% 0%, #3a1010 0%, #150505 60%);
+    color: var(--text); min-height: 100vh; padding: 20px;
+    display: flex; flex-direction: column; align-items: center;
+    overflow-x: hidden;
+  }
+  .container { width: 100%; max-width: 460px; position: relative; z-index: 2; }
+  .btn-close {
+    position: absolute; top: 0; right: 0;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,.06); border: 1px solid var(--border);
+    color: var(--muted); font-size: 20px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; text-decoration: none;
+    transition: background .2s, color .2s, border-color .2s;
+  }
+  .btn-close:hover { background: rgba(255,92,92,.18); color: #ff5c5c; border-color: rgba(255,92,92,.5); }
+  .header { text-align: center; margin-bottom: 18px; padding-top: 4px; }
+  .header h1 { font-size: 19px; letter-spacing: 4px; font-weight: 900; color: var(--gold); text-shadow: 0 0 18px rgba(255,207,64,.5); }
+  .header .sub { margin-top: 6px; font-size: 11px; letter-spacing: 3px; color: var(--muted); }
+  .header .stats { margin-top: 8px; font-size: 12px; color: var(--muted); }
+  .dot-live {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ok); margin-right: 6px; animation: blink 1.2s infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+  .crown { text-align: center; font-size: 34px; margin-bottom: 4px; animation: floaty 2.4s ease-in-out infinite; }
+  @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  .slot-card {
+    background: linear-gradient(180deg, var(--card), #1c0808);
+    border: 1px solid var(--border); border-radius: 22px;
+    padding: 30px 18px; text-align: center; margin-bottom: 18px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.6);
+    position: relative; overflow: hidden;
+    transition: border-color .4s, box-shadow .4s;
+  }
+  .slot-card::after {
+    content: ""; position: absolute; inset: 0; border-radius: 22px;
+    background: linear-gradient(120deg, transparent 40%, rgba(255,207,64,.10) 50%, transparent 60%);
+    transform: translateX(-100%); transition: transform .8s;
+  }
+  .slot-card.rolling { border-color: rgba(255,207,64,.6); box-shadow: 0 0 55px rgba(255,207,64,.3), 0 24px 60px rgba(0,0,0,.6); }
+  .slot-card.rolling::after { transform: translateX(100%); }
+  .slot-card.win {
+    border-color: rgba(255,207,64,.95);
+    box-shadow: 0 0 70px rgba(255,207,64,.55), 0 24px 60px rgba(0,0,0,.6);
+    animation: winPulse 1.2s ease;
+  }
+  @keyframes winPulse { 0% { transform: scale(1); } 40% { transform: scale(1.045); } 100% { transform: scale(1); } }
+  .slot-label { font-size: 11px; letter-spacing: 3px; color: var(--muted); margin-bottom: 18px; }
+  .digit-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 6px; min-height: 78px; align-items: center; }
+  .digit-box {
+    width: 56px; height: 74px; border-radius: 12px;
+    background: #1a0808; border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 42px; font-weight: 900; font-family: "Courier New", monospace;
+    color: var(--gold); overflow: hidden; position: relative;
+    transition: border-color .3s, box-shadow .3s, background .3s;
+  }
+  .digit-box.roll { border-color: rgba(255,207,64,.5); box-shadow: inset 0 0 20px rgba(255,207,64,.2); }
+  .digit-box.hit { border-color: var(--gold); background: rgba(255,207,64,.14); box-shadow: 0 0 26px rgba(255,207,64,.6); }
+  .slot-nama { margin-top: 18px; font-size: 23px; font-weight: 800; color: var(--text); min-height: 32px; word-break: break-word; }
+  .slot-nama.reveal { animation: reveal .7s cubic-bezier(.2,1.3,.4,1); }
+  @keyframes reveal {
+    0% { transform: scale(.5) translateY(10px); opacity: 0; }
+    60% { transform: scale(1.12); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+  .slot-badge {
+    display: inline-block; margin-top: 14px; padding: 8px 20px; border-radius: 999px;
+    font-size: 11px; letter-spacing: 3px; font-weight: 900;
+    background: linear-gradient(90deg, #b8860b, var(--gold)); color: #2a0d0d;
+    border: 1px solid var(--gold-soft);
+    opacity: 0; transform: translateY(8px);
+    transition: opacity .4s, transform .4s;
+  }
+  .slot-badge.show { opacity: 1; transform: translateY(0); }
+  .waiting { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 18px; }
+  .btn-tarik {
+    display: block; width: 100%; padding: 19px; margin-bottom: 18px;
+    border: none; border-radius: 16px;
+    background: linear-gradient(90deg, #d4a017, var(--gold));
+    color: #2a0d0d; font-weight: 900; font-size: 17px; letter-spacing: 1px;
+    cursor: pointer; transition: filter .2s, transform .1s;
+    box-shadow: 0 8px 30px rgba(255,207,64,.3);
+  }
+  .btn-tarik:hover { filter: brightness(1.08); }
+  .btn-tarik:active { transform: scale(.98); }
+  .btn-tarik:disabled { opacity: .6; cursor: not-allowed; }
+  .riwayat-title { font-size: 12px; letter-spacing: 2px; color: var(--muted); margin: 6px 0 10px; text-align: left; }
+  .riwayat-list { display: flex; flex-direction: column; gap: 8px; }
+  .riwayat-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px; animation: slideIn .4s ease;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .riwayat-no {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: linear-gradient(135deg, #b8860b, var(--gold));
+    color: #2a0d0d; font-weight: 900; font-size: 13px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .riwayat-info { flex: 1; min-width: 0; }
+  .riwayat-nomor { font-family: "Courier New", monospace; font-size: 15px; font-weight: 800; color: var(--gold); letter-spacing: 2px; }
+  .riwayat-nama { font-size: 14px; color: var(--text); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .riwayat-empty {
+    font-size: 13px; color: var(--muted); background: var(--card);
+    border: 1px dashed var(--border); border-radius: 14px; padding: 18px; text-align: center;
+  }
+  .confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden; }
+  .confetti { position: absolute; width: 9px; height: 14px; opacity: .95; animation: confettiFall linear forwards; }
+  @keyframes confettiFall {
+    0% { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <a class="btn-close" href="javascript:void(0)" id="btnClose" title="Tutup">✕</a>
+  <header class="header">
+    <div class="crown">👑</div>
+    <h1>HADIAH UTAMA</h1>
+    <div class="sub">KHUSUS PEMBELI MERCH</div>
+    <div class="stats"><span class="dot-live"></span><span id="statLive">Live</span></div>
+  </header>
+  <section class="slot-card" id="slotCard">
+    <div class="slot-label">NOMOR UNDIAN</div>
+    <div class="digit-row" id="digitRow">
+      <div class="digit-box"><span class="digit-inner" data-i="0">–</span></div>
+      <div class="digit-box"><span class="digit-inner" data-i="1">–</span></div>
+      <div class="digit-box"><span class="digit-inner" data-i="2">–</span></div>
+      <div class="digit-box"><span class="digit-inner" data-i="3">–</span></div>
+    </div>
+    <div class="slot-nama" id="slotNama">Menunggu undian hadiah utama...</div>
+    <div class="slot-badge" id="slotBadge">PEMENANG UTAMA</div>
+  </section>
+  <button class="btn-tarik" id="btnTarik" type="button">👑 TARIK HADIAH UTAMA</button>
+  <div class="waiting" id="waitingText">Tekan tombol untuk menarik pemenang.</div>
+  <div class="riwayat-title">RIWAYAT PEMENANG</div>
+  <div class="riwayat-list" id="riwayatList">
+    <div class="riwayat-empty">Belum ada pemenang.</div>
+  </div>
+</div>
+<div class="confetti-layer" id="confettiLayer"></div>
+
+<script>
+  var API_URL = "https://script.google.com/macros/s/AKfycbyg3sDxkMVUHMQbQGFZIXdOfhm2VACuM-rr8FMYO12eBlpEa3REXJ-ctN5HlqXok1lCUw/exec";
+  var POLL_MS = 3000;
+  var DURASI_ANIMASI = 9000;
+  var CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+  var jumlahPemenangDikenal = -1;
+  var sudahInit   = false;
+  var isAnimating = false;
+  var isDrawing   = false;
+  var pendingRiwayat = null;
+
+  var elCard    = document.getElementById("slotCard");
+  var elNama    = document.getElementById("slotNama");
+  var elBadge   = document.getElementById("slotBadge");
+  var elWait    = document.getElementById("waitingText");
+  var elRiwayat = document.getElementById("riwayatList");
+  var elLive    = document.getElementById("statLive");
+  var elConfetti= document.getElementById("confettiLayer");
+  var btnTarik  = document.getElementById("btnTarik");
+  var digitBoxes  = Array.prototype.slice.call(document.querySelectorAll(".digit-box"));
+  var digitInners = Array.prototype.slice.call(document.querySelectorAll(".digit-inner"));
+
+  function acakChar() { return CHARS.charAt(Math.floor(Math.random() * CHARS.length)); }
+  function setDigit(i, ch) { digitInners[i].textContent = ch; }
+  function resetDigits() {
+    digitBoxes.forEach(function (b) { b.classList.remove("roll", "hit"); });
+    digitInners.forEach(function (d) { d.textContent = "–"; });
+  }
+
+  document.getElementById("btnClose").addEventListener("click", function () {
+    if (document.referrer && document.referrer !== "") window.location.href = document.referrer;
+    else if (window.history.length > 1) window.history.back();
+    else window.close();
+  });
+
+  /* ===== Polling riwayat (pakai riwayatPemenang yang sama) ===== */
+  function fetchRiwayat() {
+    if (isAnimating) return;
+
+    fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ aksi: "riwayatPemenang" })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.success) return;
+      if (isAnimating) return;
+
+      var list  = data.pemenang || [];
+      var total = list.length;
+      elLive.textContent = "Live · " + total + " pemenang";
+
+      if (!sudahInit) {
+        sudahInit = true;
+        jumlahPemenangDikenal = total;
+        if (total > 0) {
+          var last = list[total - 1];
+          tampilStatis(last.nomorUndian, last.nama);
+        }
+        renderRiwayat(list);
+        return;
+      }
+
+      if (total > jumlahPemenangDikenal) {
+        if (isAnimating || isDrawing) return;
+        jumlahPemenangDikenal = total;
+        var terakhir = list[total - 1];
+        pendingRiwayat = list;
+        jalankanAnimasi(terakhir.nomorUndian, terakhir.nama);
+        return;
+      }
+
+      jumlahPemenangDikenal = total;
+      renderRiwayat(list);
+      if (!isDrawing) elWait.textContent = "Menunggu undian berikutnya...";
+    })
+    .catch(function () {});
+  }
+
+  function tampilStatis(nomor, nama) {
+    var arr = String(nomor).toUpperCase().split("");
+    for (var i = 0; i < 4; i++) setDigit(i, arr[i] || "–");
+    elNama.textContent = nama;
+    elBadge.classList.add("show");
+  }
+
+  function jalankanAnimasi(nomorFinal, namaFinal) {
+    if (isAnimating) return;
+    isAnimating = true;
+
+    elBadge.classList.remove("show");
+    elCard.classList.remove("win");
+    elCard.classList.add("rolling");
+    elNama.textContent = "";
+    elWait.textContent = "Sedang mengacak nomor...";
+    resetDigits();
+
+    var finalArr = String(nomorFinal).toUpperCase().split("");
+    var ticker = setInterval(function () {
+      for (var i = 0; i < 4; i++) setDigit(i, acakChar());
+    }, 60);
+    digitBoxes.forEach(function (box) { box.classList.add("roll"); });
+
+    setTimeout(function () {
+      clearInterval(ticker);
+      digitBoxes.forEach(function (box, i) {
+        box.classList.remove("roll");
+        box.classList.add("hit");
+        setDigit(i, finalArr[i] || "–");
+      });
+      finishReveal(namaFinal);
+    }, DURASI_ANIMASI);
+  }
+
+  function finishReveal(nama) {
+    elCard.classList.remove("rolling");
+    elCard.classList.add("win");
+    elNama.textContent = nama;
+    elNama.classList.remove("reveal");
+    void elNama.offsetWidth;
+    elNama.classList.add("reveal");
+    elBadge.classList.add("show");
+    elWait.textContent = "Menunggu undian berikutnya...";
+    ledakkanConfetti();
+    isAnimating = false;
+
+    if (pendingRiwayat) {
+      renderRiwayat(pendingRiwayat);
+      pendingRiwayat = null;
+    }
+  }
+
+  function ledakkanConfetti() {
+    var warna = ["#ffcf40", "#ffe08a", "#fff5e6", "#ff5c5c", "#b8860b"];
+    for (var i = 0; i < 70; i++) {
+      (function (i) {
+        setTimeout(function () {
+          var c = document.createElement("div");
+          c.className = "confetti";
+          c.style.left = Math.random() * 100 + "vw";
+          c.style.background = warna[Math.floor(Math.random() * warna.length)];
+          c.style.animationDuration = (2 + Math.random() * 1.8) + "s";
+          c.style.width = (6 + Math.random() * 7) + "px";
+          c.style.height = (10 + Math.random() * 9) + "px";
+          elConfetti.appendChild(c);
+          setTimeout(function () { c.remove(); }, 4200);
+        }, i * 32);
+      })(i);
+    }
+  }
+
+  function renderRiwayat(list) {
+    if (!list || list.length === 0) {
+      elRiwayat.innerHTML = '<div class="riwayat-empty">Belum ada pemenang.</div>';
+      return;
+    }
+    elRiwayat.innerHTML = "";
+    list.slice().reverse().forEach(function (p, idx) {
+      var no = list.length - idx;
+      var item = document.createElement("div");
+      item.className = "riwayat-item";
+      var badge = document.createElement("div");
+      badge.className = "riwayat-no";
+      badge.textContent = no;
+      var info = document.createElement("div");
+      info.className = "riwayat-info";
+      var nm = document.createElement("div");
+      nm.className = "riwayat-nomor";
+      nm.textContent = p.nomorUndian;
+      var na = document.createElement("div");
+      na.className = "riwayat-nama";
+      na.textContent = p.nama;
+      info.appendChild(nm);
+      info.appendChild(na);
+      item.appendChild(badge);
+      item.appendChild(info);
+      elRiwayat.appendChild(item);
+    });
+  }
+
+  function acakFisherYates(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  /* ===== Tombol: ambil kandidat utama → acak → tulis → animasi ===== */
+  btnTarik.addEventListener("click", function () {
+    if (isDrawing) return;
+    if (!confirm("Tarik 1 pemenang HADIAH UTAMA sekarang?")) return;
+
+    isDrawing = true;
+    btnTarik.disabled = true;
+    btnTarik.textContent = "⏳ MENGACAK...";
+    elWait.textContent = "Mengambil daftar peserta pembeli merch...";
+
+    fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ aksi: "ambilKandidatUtama" })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.success || !data.kandidat || data.kandidat.length === 0) {
+        alert("Tidak ada peserta pembeli merch yang tersisa untuk diundi.");
+        batalTombol();
+        return;
+      }
+      var teracak = acakFisherYates(data.kandidat);
+      var pilihan = teracak[0];
+      elWait.textContent = "Menentukan pemenang...";
+
+      return fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          aksi: "tulisPemenangUtama",
+          nomorUndian: pilihan.nomor,
+          idPeserta: pilihan.idPeserta
+        })
+      })
+      .then(function (r) { return r.json(); });
+    })
+    .then(function (hasil) {
+      if (!hasil) return;
+
+      if (!hasil.success) {
+        alert("Gagal menulis pemenang:\n\n" + (hasil.message || "Tidak diketahui."));
+        batalTombol();
+        return;
+      }
+
+      // update jumlah pemenang lokal agar tidak animasi dobel
+      jumlahPemenangDikenal = jumlahPemenangDikenal < 0 ? 1 : jumlahPemenangDikenal + 1;
+      pendingRiwayat = null;
+      jalankanAnimasi(hasil.nomorUndian, hasil.nama);
+
+      var tunggu = setInterval(function () {
+        if (!isAnimating) {
+          clearInterval(tunggu);
+          batalTombol();
+          sudahInit = true;
+          fetchRiwayat();
+        }
+      }, 200);
+    })
+    .catch(function (err) {
+      console.error(err);
+      alert("Gagal terhubung ke server.");
+      batalTombol();
+    });
+  });
+
+  function batalTombol() {
+    isDrawing = false;
+    btnTarik.disabled = false;
+    btnTarik.textContent = "👑 TARIK HADIAH UTAMA";
+  }
+
+  /* ====== INIT ====== */
+  fetchRiwayat();
+  setInterval(fetchRiwayat, POLL_MS);
+</script>
+</body>
+</html>
