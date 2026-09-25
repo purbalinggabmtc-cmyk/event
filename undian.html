@@ -93,6 +93,19 @@
   .btn-tarik:hover { background: #ffd23f; }
   .btn-tarik:active { transform: scale(.98); }
   .btn-tarik:disabled { opacity: .6; cursor: not-allowed; }
+  .btn-refresh {
+    display: none; width: 100%; padding: 13px; margin-bottom: 18px;
+    border: 1px solid var(--border); border-radius: 14px;
+    background: rgba(255,255,255,.05); color: var(--muted);
+    font-weight: 700; font-size: 14px; letter-spacing: 1px;
+    cursor: pointer; transition: background .2s, color .2s, border-color .2s, transform .1s;
+  }
+  .btn-refresh.show { display: block; }
+  .btn-refresh:hover { background: rgba(255,196,0,.12); color: var(--accent); border-color: rgba(255,196,0,.45); }
+  .btn-refresh:active { transform: scale(.98); }
+  .btn-refresh:disabled { opacity: .6; cursor: not-allowed; }
+  .btn-refresh .spin { display: inline-block; animation: spinRefresh .7s linear infinite; }
+  @keyframes spinRefresh { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
   .riwayat-title { font-size: 12px; letter-spacing: 2px; color: var(--muted); margin: 6px 0 10px; text-align: left; }
   .riwayat-list { display: flex; flex-direction: column; gap: 8px; }
   .riwayat-item {
@@ -149,6 +162,7 @@
     <div class="slot-badge" id="slotBadge">PEMENANG</div>
   </section>
   <button class="btn-tarik" id="btnTarik" type="button">🎲 TARIK NOMOR UNDIAN</button>
+  <button class="btn-refresh" id="btnRefresh" type="button"><span id="btnRefreshIcon">⟳</span> MUAT ULANG DATA</button>
   <div class="waiting" id="waitingText">Panitia akan segera menarik nomor.</div>
   <div class="riwayat-title">RIWAYAT PEMENANG</div>
   <div class="riwayat-list" id="riwayatList">
@@ -180,6 +194,7 @@
   var elLive    = document.getElementById("statLive");
   var elConfetti= document.getElementById("confettiLayer");
   var btnTarik  = document.getElementById("btnTarik");
+  var btnRefresh= document.getElementById("btnRefresh");
   var digitBoxes  = Array.prototype.slice.call(document.querySelectorAll(".digit-box"));
   var digitInners = Array.prototype.slice.call(document.querySelectorAll(".digit-inner"));
 
@@ -193,10 +208,12 @@
   function terapkanMode() {
     if (IS_PANITIA) {
       btnTarik.classList.add("show");
+      btnRefresh.classList.add("show");
       document.getElementById("modeBadge").classList.add("show");
       elWait.textContent = "Tekan tombol untuk menarik nomor.";
     } else {
       btnTarik.classList.remove("show");
+      btnRefresh.classList.remove("show");
       document.getElementById("modeBadge").classList.remove("show");
     }
   }
@@ -416,6 +433,56 @@
       console.error(err);
       alert("Gagal terhubung ke server.");
       batalTombol();
+    });
+  });
+
+  /* ====== TOMBOL MUAT ULANG DATA (aman, tidak memicu animasi) ====== */
+  btnRefresh.addEventListener("click", function () {
+    if (isAnimating) {
+      alert("Tunggu sampai animasi undian selesai.");
+      return;
+    }
+
+    btnRefresh.disabled = true;
+    var icon = document.getElementById("btnRefreshIcon");
+    icon.classList.add("spin");
+    elWait.textContent = "Memuat data terbaru...";
+
+    fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ aksi: "riwayatPemenang" })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data.success) throw new Error("gagal");
+      var list = data.pemenang || [];
+
+      // Sinkronkan tanpa memicu animasi pemenang lama
+      sudahInit = true;
+      jumlahPemenangDikenal = list.length;
+      pendingRiwayat = null;
+
+      elLive.textContent = "Live · " + list.length + " pemenang";
+      renderRiwayat(list);
+
+      if (list.length > 0) {
+        var last = list[list.length - 1];
+        tampilStatis(last.nomorUndian, last.nama);
+      } else {
+        resetDigits();
+        elNama.textContent = "Menunggu undian dimulai...";
+        elBadge.classList.remove("show");
+      }
+
+      elWait.textContent = "Data diperbarui. Tekan tombol untuk menarik nomor.";
+    })
+    .catch(function () {
+      elWait.textContent = "Gagal memuat data. Coba lagi.";
+    })
+    .then(function () {
+      icon.classList.remove("spin");
+      btnRefresh.disabled = false;
     });
   });
 
