@@ -18,8 +18,6 @@
     overflow-x: hidden;
   }
   .container { width: 100%; max-width: 460px; position: relative; z-index: 2; }
-
-  /* Tombol close (pojok kanan atas) */
   .btn-close {
     position: absolute; top: 0; right: 0;
     width: 38px; height: 38px; border-radius: 50%;
@@ -30,7 +28,6 @@
     transition: background .2s, color .2s, border-color .2s;
   }
   .btn-close:hover { background: rgba(255,92,92,.15); color: #ff5c5c; border-color: rgba(255,92,92,.4); }
-
   .header { text-align: center; margin-bottom: 18px; padding-top: 4px; }
   .header h1 { font-size: 18px; letter-spacing: 3px; font-weight: 800; color: var(--accent); }
   .header .stats { margin-top: 8px; font-size: 12px; color: var(--muted); }
@@ -39,8 +36,6 @@
     background: var(--ok); margin-right: 6px; animation: blink 1.2s infinite;
   }
   @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
-
-  /* Slot nomor */
   .slot-card {
     background: var(--card); border: 1px solid var(--border); border-radius: 22px;
     padding: 30px 18px; text-align: center; margin-bottom: 18px;
@@ -62,9 +57,7 @@
     40%  { transform: scale(1.04); }
     100% { transform: scale(1); }
   }
-
   .slot-label { font-size: 11px; letter-spacing: 3px; color: var(--muted); margin-bottom: 18px; }
-
   .digit-row {
     display: flex; justify-content: center; gap: 8px;
     margin-bottom: 6px; min-height: 78px; align-items: center;
@@ -87,12 +80,6 @@
     box-shadow: 0 0 24px rgba(74,222,128,.5);
   }
   .digit-inner { display: block; will-change: transform, opacity; }
-  .digit-inner.spin { animation: slotSpin .09s linear infinite; }
-  @keyframes slotSpin {
-    from { transform: translateY(-100%); opacity: .2; }
-    to   { transform: translateY(100%);  opacity: .2; }
-  }
-
   .slot-nama {
     margin-top: 18px; font-size: 23px; font-weight: 800; color: var(--text);
     min-height: 32px; word-break: break-word;
@@ -103,7 +90,6 @@
     60%  { transform: scale(1.12); opacity: 1; }
     100% { transform: scale(1); }
   }
-
   .slot-badge {
     display: inline-block; margin-top: 14px; padding: 7px 18px; border-radius: 999px;
     font-size: 11px; letter-spacing: 3px; font-weight: 800;
@@ -113,12 +99,9 @@
     transition: opacity .4s, transform .4s;
   }
   .slot-badge.show { opacity: 1; transform: translateY(0); }
-
   .waiting { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 18px; }
-
-  /* ====== TOMBOL TARIK (khusus mode panitia) ====== */
   .btn-tarik {
-    display: none;                    /* disembunyikan default */
+    display: none;
     width: 100%; padding: 18px; margin-bottom: 18px;
     border: none; border-radius: 16px;
     background: var(--accent); color: #111;
@@ -129,8 +112,6 @@
   .btn-tarik:hover { background: #ffd23f; }
   .btn-tarik:active { transform: scale(.98); }
   .btn-tarik:disabled { opacity: .6; cursor: not-allowed; }
-
-  /* Riwayat */
   .riwayat-title {
     font-size: 12px; letter-spacing: 2px; color: var(--muted);
     margin: 6px 0 10px; text-align: left;
@@ -160,8 +141,6 @@
     border: 1px dashed var(--border); border-radius: 14px; padding: 18px;
     text-align: center;
   }
-
-  /* CONFETTI */
   .confetti-layer { position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden; }
   .confetti {
     position: absolute; width: 9px; height: 14px; opacity: .95;
@@ -171,8 +150,6 @@
     0%   { transform: translateY(-30px) rotate(0deg); opacity: 1; }
     100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
   }
-
-  /* Badge mode panitia */
   .mode-badge {
     display: none; margin-bottom: 14px; text-align: center;
     font-size: 11px; letter-spacing: 2px; font-weight: 800;
@@ -185,17 +162,12 @@
 </head>
 <body>
 <div class="container">
-
-  <!-- Tombol close (selalu ada) -->
   <a class="btn-close" href="javascript:void(0)" id="btnClose" title="Tutup">✕</a>
-
   <header class="header">
     <h1>PENGAMBILAN UNDIAN</h1>
     <div class="stats"><span class="dot-live"></span><span id="statLive">Live</span></div>
   </header>
-
   <div class="mode-badge" id="modeBadge">MODE PANITIA</div>
-
   <section class="slot-card" id="slotCard">
     <div class="slot-label">NOMOR UNDIAN</div>
     <div class="digit-row" id="digitRow">
@@ -207,35 +179,32 @@
     <div class="slot-nama" id="slotNama">Menunggu undian dimulai...</div>
     <div class="slot-badge" id="slotBadge">PEMENANG</div>
   </section>
-
-  <!-- Tombol tarik: HANYA tampil di mode panitia -->
   <button class="btn-tarik" id="btnTarik" type="button">🎲 TARIK NOMOR UNDIAN</button>
-
   <div class="waiting" id="waitingText">Panitia akan segera menarik nomor.</div>
-
   <div class="riwayat-title">RIWAYAT PEMENANG</div>
   <div class="riwayat-list" id="riwayatList">
     <div class="riwayat-empty">Belum ada pemenang.</div>
   </div>
 </div>
-
 <div class="confetti-layer" id="confettiLayer"></div>
 
 <script>
   var API_URL = "https://script.google.com/macros/s/AKfycbyg3sDxkMVUHMQbQGFZIXdOfhm2VACuM-rr8FMYO12eBlpEa3REXJ-ctN5HlqXok1lCUw/exec";
   var POLL_MS = 3000;
+  var DURASI_ANIMASI = 9000;
 
-  /* ==== MODE: baca dari ?mode=panitia atau ?mode=peserta ==== */
   var params     = new URLSearchParams(window.location.search);
   var MODE       = (params.get("mode") || "peserta").toLowerCase();
   var IS_PANITIA = (MODE === "panitia");
 
   var CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-  var lastIdPemenang = null;
-  var sudahInit     = false;
-  var isAnimating   = false;
-  var isDrawing     = false;
+  /* ===== STATE ===== */
+  var jumlahPemenangDikenal = -1;  // -1 = belum init
+  var sudahInit       = false;
+  var isAnimating      = false;
+  var isDrawing        = false;
+  var pendingRiwayat   = null;     // daftar riwayat ditunda sampai animasi selesai
 
   var elCard    = document.getElementById("slotCard");
   var elNama    = document.getElementById("slotNama");
@@ -253,10 +222,9 @@
 
   function resetDigits() {
     digitBoxes.forEach(function (b) { b.classList.remove("roll", "hit"); });
-    digitInners.forEach(function (d) { d.classList.remove("spin"); d.textContent = "–"; });
+    digitInners.forEach(function (d) { d.textContent = "–"; });
   }
 
-  /* ====== ATUR TAMPILAN SESUAI MODE ====== */
   function terapkanMode() {
     if (IS_PANITIA) {
       btnTarik.classList.add("show");
@@ -268,7 +236,6 @@
     }
   }
 
-  /* ====== Tombol CLOSE ====== */
   document.getElementById("btnClose").addEventListener("click", function () {
     if (document.referrer && document.referrer !== "") {
       window.location.href = document.referrer;
@@ -279,8 +246,14 @@
     }
   });
 
-  /* ====== Ambil riwayat pemenang ====== */
+  /* =====================================================================
+   *  ✅ FIX #1 : fetchRiwayat DIKUNCI saat animasi berjalan
+   *  ✅ FIX #2 : kunci pemenang pakai JUMLAH (bukan ID),
+   *              supaya tidak butuh idUndian dari .gs
+   * ===================================================================== */
   function fetchRiwayat() {
+    if (isAnimating) return;               // ⛔ jangan proses saat animasi
+
     fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -289,30 +262,50 @@
     .then(function (r) { return r.json(); })
     .then(function (data) {
       if (!data.success) return;
-      var list = data.pemenang || [];
-      elLive.textContent = "Live · " + list.length + " pemenang";
+      if (isAnimating) return;             // ⛔ cek lagi (race condition)
 
-      if (list.length > 0) {
-        var terakhir = list[list.length - 1];
-        var idNow = terakhir.idUndian || terakhir.nomorUndian;
+      var list  = data.pemenang || [];
+      var total = list.length;
 
-        if (!sudahInit) {
-          sudahInit = true;
-          lastIdPemenang = idNow;
-          tampilStatis(terakhir.nomorUndian, terakhir.nama);
-        } else if (idNow !== lastIdPemenang) {
-          lastIdPemenang = idNow;
-          jalankanAnimasi(terakhir.nomorUndian, terakhir.nama);
-        }
-        if (!isDrawing) elWait.textContent = "Menunggu undian berikutnya...";
+      elLive.textContent = "Live · " + total + " pemenang";
 
-      } else {
+      /* ---- Pertama kali halaman dibuka ---- */
+      if (!sudahInit) {
         sudahInit = true;
+        jumlahPemenangDikenal = total;     // ✅ tandai sudah tahu sebanyak ini
+        if (total > 0) {
+          var last = list[total - 1];
+          tampilStatis(last.nomorUndian, last.nama);
+        }
+        renderRiwayat(list);               // pemenang lama: boleh langsung render
+        return;
       }
 
+      /* ---- Ada pemenang BARU sejak polling terakhir ---- */
+      if (total > jumlahPemenangDikenal) {
+        // Kalau animasi sedang jalan, ini pemenang yang SUDAH kita animasikan
+        // lewat tombol → cukup update penanda, jangan animasi ulang.
+        if (isAnimating || isDrawing) {
+          return;
+        }
+
+        // Ini pemenang baru dari sumber lain (mis. MC/HP lain).
+        // Tandai dulu supaya polling berikutnya tidak mengulang.
+        jumlahPemenangDikenal = total;
+        var terakhir = list[total - 1];
+
+        // ✅ FIX #3 : TUNDA render riwayat → titip ke finishReveal()
+        pendingRiwayat = list;
+        jalankanAnimasi(terakhir.nomorUndian, terakhir.nama);
+        return;
+      }
+
+      /* ---- Tidak ada pemenang baru → aman render riwayat ---- */
+      jumlahPemenangDikenal = total;
       renderRiwayat(list);
+      if (!isDrawing) elWait.textContent = "Menunggu undian berikutnya...";
     })
-    .catch(function () { /* abaikan */ });
+    .catch(function () { /* abaikan error jaringan */ });
   }
 
   function tampilStatis(nomor, nama) {
@@ -322,9 +315,8 @@
     elBadge.classList.add("show");
   }
 
-  /* ====== Animasi live drawing (semua kotak berhenti SERENTAK) ====== */
   function jalankanAnimasi(nomorFinal, namaFinal) {
-    if (isAnimating) return;
+    if (isAnimating) return;               // guard anti-double
     isAnimating = true;
 
     elBadge.classList.remove("show");
@@ -336,38 +328,27 @@
 
     var finalArr = String(nomorFinal).toUpperCase().split("");
 
-    // Durasi total animasi (ms)
-    var DURASI = 9000;
-
-    // ==== Ticker: SEMUA kotak berganti karakter acak bareng ====
-    // Satu interval meng-update semua kotak sekaligus.
-    var waktuMulai = Date.now();
     var ticker = setInterval(function () {
-      digitBoxes.forEach(function (box, i) {
-        // tampilkan karakter acak
-        setDigit(i, acakChar());
-      });
+      for (var i = 0; i < 4; i++) setDigit(i, acakChar());
     }, 60);
 
-    // beri efek visual roll di semua kotak
-    digitBoxes.forEach(function (box) {
-      box.classList.add("roll");
-    });
+    digitBoxes.forEach(function (box) { box.classList.add("roll"); });
 
-    // ==== Berhenti SERENTAK: semua kotak kunci ke karakter final ====
     setTimeout(function () {
       clearInterval(ticker);
-
       digitBoxes.forEach(function (box, i) {
         box.classList.remove("roll");
         box.classList.add("hit");
-        digitInners[i].classList.remove("spin");
-        digitInners[i].textContent = finalArr[i] || "–";
+        setDigit(i, finalArr[i] || "–");
       });
-
       finishReveal(namaFinal);
-    }, DURASI);
+    }, DURASI_ANIMASI);
   }
+
+  /* =====================================================================
+   *  ✅ FIX #4 : finishReveal jadi satu-satunya tempat yang membuka
+   *              isAnimating = false, lalu BARU render riwayat.
+   * ===================================================================== */
   function finishReveal(nama) {
     elCard.classList.remove("rolling");
     elCard.classList.add("win");
@@ -378,7 +359,14 @@
     elBadge.classList.add("show");
     elWait.textContent = "Menunggu undian berikutnya...";
     ledakkanConfetti();
-    isAnimating = false;
+
+    isAnimating = false;                   // ✅ animasi resmi selesai DI SINI
+
+    // ✅ render riwayat yang tadi ditunda (muncul setelah animasi selesai)
+    if (pendingRiwayat) {
+      renderRiwayat(pendingRiwayat);
+      pendingRiwayat = null;
+    }
   }
 
   function ledakkanConfetti() {
@@ -429,9 +417,15 @@
     });
   }
 
-  /* ====== TOMBOL TARIK (hanya berfungsi di mode panitia) ====== */
+  /* =====================================================================
+   *  ✅ FIX #5 : Tombol Tarik
+   *   - TIDAK set lastIdPemenang = null (yang bikin animasi dobel)
+   *   - Naikkan jumlahPemenangDikenal saat respons balik,
+   *     supaya polling tidak menganggapnya pemenang baru
+   *   - Tunggu animasi BENAR selesai (polling isAnimating)
+   * ===================================================================== */
   btnTarik.addEventListener("click", function () {
-    if (!IS_PANITIA) return;          // pengaman ganda
+    if (!IS_PANITIA) return;
     if (isDrawing) return;
     if (!confirm("Tarik 1 nomor undian sekarang?")) return;
 
@@ -454,18 +448,30 @@
         btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
         return;
       }
-      // Animasi langsung (tanpa nunggu polling)
-      lastIdPemenang = null;
+
+      // ✅ KUNCI INTI: naikkan penanda jumlah pemenang SEKARANG.
+      //    Jadi polling yang datang di tengah animasi TIDAK menganggap
+      //    ini "pemenang baru" → animasi tidak dobel.
+      jumlahPemenangDikenal = jumlahPemenangDikenal < 0
+        ? 1
+        : jumlahPemenangDikenal + 1;
+
+      pendingRiwayat = null;              // akan diisi ulang via fetchRiwayat
+
+      // Jalankan animasi SEKALI
       jalankanAnimasi(data.nomorUndian, data.nama);
 
-      // Setelah animasi selesai, sync ulang
-      setTimeout(function () {
-        isDrawing = false;
-        btnTarik.disabled = false;
-        btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
-        sudahInit = true;
-        fetchRiwayat();
-      }, 9000);
+      // ✅ Tunggu animasi BENAR-benar selesai (poll isAnimating)
+      var tunggu = setInterval(function () {
+        if (!isAnimating) {
+          clearInterval(tunggu);
+          isDrawing = false;
+          btnTarik.disabled = false;
+          btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
+          sudahInit = true;
+          fetchRiwayat();                 // sinkronkan riwayat setelah animasi
+        }
+      }, 200);
     })
     .catch(function (err) {
       console.error(err);
