@@ -173,7 +173,7 @@
 
 <script>
   var API_URL = "https://script.google.com/macros/s/AKfycbyg3sDxkMVUHMQbQGFZIXdOfhm2VACuM-rr8FMYO12eBlpEa3REXJ-ctN5HlqXok1lCUw/exec";
-  var POLL_MS = 3000;
+  var POLL_MS = 1500;
   var DURASI_ANIMASI = 9000;
   var params     = new URLSearchParams(window.location.search);
   var MODE       = (params.get("mode") || "peserta").toLowerCase();
@@ -186,9 +186,12 @@
   var isDrawing   = false;
   var pendingRiwayat = null;
 
-  /* FIX bug animasi ganda antar-tab */
   var nomorSudahDianimasikan = null;   // nomor terakhir yang sudah diputar di tab INI
   var menulisPemenang = false;         // true selama panitia menulis via tombol
+
+  /* sinkronisasi jam */
+  var offsetJamServer = 0;
+  var timerJadwal = null;
 
   var elCard    = document.getElementById("slotCard");
   var elNama    = document.getElementById("slotNama");
@@ -207,6 +210,22 @@
   function resetDigits() {
     digitBoxes.forEach(function (b) { b.classList.remove("roll", "hit"); });
     digitInners.forEach(function (d) { d.textContent = "–"; });
+  }
+
+  function nowServer() { return Date.now() + offsetJamServer; }
+
+  function sinkronJamServer() {
+    fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ aksi: "waktuServer" })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (!data || !data.success) return;
+      offsetJamServer = data.now - Date.now();
+    })
+    .catch(function () {});
   }
 
   function terapkanMode() {
@@ -243,7 +262,6 @@
       var total = list.length;
       elLive.textContent = "Live · " + total + " pemenang";
 
-      // Inisialisasi pertama kali
       if (!sudahInit) {
         sudahInit = true;
         jumlahPemenangDikenal = total;
@@ -256,20 +274,16 @@
         return;
       }
 
-      // Ada pemenang baru?
       if (total > jumlahPemenangDikenal) {
         jumlahPemenangDikenal = total;
         var terakhir = list[total - 1];
 
-        // FIX: mode panitia TIDAK memicu animasi dari polling.
-        // Animasi di sisi panitia hanya dari klik tombol tarik.
         if (IS_PANITIA) {
           renderRiwayat(list);
           if (!isDrawing) elWait.textContent = "Menunggu undian berikutnya...";
           return;
         }
 
-        // Mode peserta: animasi hanya bila nomor ini belum pernah dianimasikan di tab ini
         if (menulisPemenang) return;
         if (nomorSudahDianimasikan === terakhir.nomorUndian) {
           renderRiwayat(list);
@@ -278,7 +292,7 @@
 
         nomorSudahDianimasikan = terakhir.nomorUndian;
         pendingRiwayat = list;
-        jalankanAnimasi(terakhir.nomorUndian, terakhir.nama);
+        jadwalkanAnimasi(terakhir.nomorUndian, terakhir.nama, terakhir.waktuAnimasi);
         return;
       }
 
@@ -294,6 +308,32 @@
     for (var i = 0; i < 4; i++) setDigit(i, arr[i] || "–");
     elNama.textContent = nama;
     elBadge.classList.add("show");
+  }
+
+  /* Tunggu waktu absolut target, lalu tampilkan */
+  function jadwalkanAnimasi(nomor, nama, waktuAnimasi) {
+    if (timerJadwal) { clearTimeout(timerJadwal); timerJadwal = null; }
+
+    elBadge.classList.remove("show");
+    elCard.classList.remove("win");
+    elWait.textContent = "Bersiap... undian segera dimulai.";
+
+    var waktu = Number(waktuAnimasi) || 0;
+    if (waktu <= 0) {
+      jalankanAnimasi(nomor, nama);
+      return;
+    }
+
+    var sisa = waktu - nowServer();
+    if (sisa < 0) sisa = 0;
+    if (sisa > 60000) sisa = 60000;
+
+    isAnimating = true;   // kunci selama masa tunggu agar polling diam
+    timerJadwal = setTimeout(function () {
+      timerJadwal = null;
+      isAnimating = false;
+      jalankanAnimasi(nomor, nama);
+    }, sisa);
   }
 
   function jalankanAnimasi(nomorFinal, namaFinal) {
@@ -403,7 +443,7 @@
     if (!confirm("Tarik 1 nomor undian sekarang?")) return;
 
     isDrawing = true;
-    menulisPemenang = true;                 // FIX: tandai sedang menulis
+    menulisPemenang = true;
     btnTarik.disabled = true;
     btnTarik.textContent = "⏳ MENGACAK...";
     elWait.textContent = "Mengambil daftar nomor...";
@@ -443,18 +483,10 @@
         return;
       }
       jumlahPemenangDikenal = jumlahPemenangDikenal < 0 ? 1 : jumlahPemenangDikenal + 1;
-      nomorSudahDianimasikan = hasil.nomorUndian;   // FIX: catat nomor yang sudah diputar
+      nomorSudahDianimasikan = hasil.nomorUndian;
       pendingRiwayat = null;
-      jalankanAnimasi(hasil.nomorUndian, hasil.nama);
-
-      var tunggu = setInterval(function () {
-        if (!isAnimating) {
-          clearInterval(tunggu);
-          batalTombol();
-          sudahInit = true;
-          fetchRiwayat();
-        }
-      }, 200);
+      batalTombol();               // tombol aktif kembali sebelum animasi
+      jadwalkanAnimasi(hasil.nomorUndian, hasil.nama, hasil.waktuAnimasi);
     })
     .catch(function (err) {
       console.error(err);
@@ -463,7 +495,7 @@
     });
   });
 
-  /* ====== TOMBOL MUAT ULANG DATA (aman, tidak memicu animasi) ====== */
+  /* ====== TOMBOL MUAT ULANG DATA ====== */
   btnRefresh.addEventListener("click", function () {
     if (isAnimating) {
       alert("Tunggu sampai animasi undian selesai.");
@@ -485,7 +517,6 @@
       if (!data.success) throw new Error("gagal");
       var list = data.pemenang || [];
 
-      // Sinkronkan tanpa memicu animasi pemenang lama
       sudahInit = true;
       jumlahPemenangDikenal = list.length;
       pendingRiwayat = null;
@@ -496,7 +527,7 @@
       if (list.length > 0) {
         var last = list[list.length - 1];
         tampilStatis(last.nomorUndian, last.nama);
-        nomorSudahDianimasikan = last.nomorUndian;   // FIX: jangan animasi ulang nomor ini
+        nomorSudahDianimasikan = last.nomorUndian;
       } else {
         resetDigits();
         elNama.textContent = "Menunggu undian dimulai...";
@@ -517,12 +548,14 @@
 
   function batalTombol() {
     isDrawing = false;
-    menulisPemenang = false;                // FIX: reset penanda
+    menulisPemenang = false;
     btnTarik.disabled = false;
     btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
   }
 
   terapkanMode();
+  sinkronJamServer();
+  setInterval(sinkronJamServer, 60000);
   fetchRiwayat();
   setInterval(fetchRiwayat, POLL_MS);
 </script>
