@@ -200,11 +200,11 @@
   var CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
   /* ===== STATE ===== */
-  var jumlahPemenangDikenal = -1;  // -1 = belum init
-  var sudahInit       = false;
-  var isAnimating      = false;
-  var isDrawing        = false;
-  var pendingRiwayat   = null;     // daftar riwayat ditunda sampai animasi selesai
+  var jumlahPemenangDikenal = -1;
+  var sudahInit   = false;
+  var isAnimating = false;
+  var isDrawing   = false;
+  var pendingRiwayat = null;
 
   var elCard    = document.getElementById("slotCard");
   var elNama    = document.getElementById("slotNama");
@@ -247,12 +247,10 @@
   });
 
   /* =====================================================================
-   *  ✅ FIX #1 : fetchRiwayat DIKUNCI saat animasi berjalan
-   *  ✅ FIX #2 : kunci pemenang pakai JUMLAH (bukan ID),
-   *              supaya tidak butuh idUndian dari .gs
+   *  POLLING RIWAYAT (kunci pakai JUMLAH pemenang)
    * ===================================================================== */
   function fetchRiwayat() {
-    if (isAnimating) return;               // ⛔ jangan proses saat animasi
+    if (isAnimating) return;
 
     fetch(API_URL, {
       method: "POST",
@@ -262,50 +260,39 @@
     .then(function (r) { return r.json(); })
     .then(function (data) {
       if (!data.success) return;
-      if (isAnimating) return;             // ⛔ cek lagi (race condition)
+      if (isAnimating) return;
 
       var list  = data.pemenang || [];
       var total = list.length;
 
       elLive.textContent = "Live · " + total + " pemenang";
 
-      /* ---- Pertama kali halaman dibuka ---- */
       if (!sudahInit) {
         sudahInit = true;
-        jumlahPemenangDikenal = total;     // ✅ tandai sudah tahu sebanyak ini
+        jumlahPemenangDikenal = total;
         if (total > 0) {
           var last = list[total - 1];
           tampilStatis(last.nomorUndian, last.nama);
         }
-        renderRiwayat(list);               // pemenang lama: boleh langsung render
+        renderRiwayat(list);
         return;
       }
 
-      /* ---- Ada pemenang BARU sejak polling terakhir ---- */
       if (total > jumlahPemenangDikenal) {
-        // Kalau animasi sedang jalan, ini pemenang yang SUDAH kita animasikan
-        // lewat tombol → cukup update penanda, jangan animasi ulang.
-        if (isAnimating || isDrawing) {
-          return;
-        }
+        if (isAnimating || isDrawing) return;   // pemenang dari tombol kita sendiri
 
-        // Ini pemenang baru dari sumber lain (mis. MC/HP lain).
-        // Tandai dulu supaya polling berikutnya tidak mengulang.
         jumlahPemenangDikenal = total;
         var terakhir = list[total - 1];
-
-        // ✅ FIX #3 : TUNDA render riwayat → titip ke finishReveal()
-        pendingRiwayat = list;
+        pendingRiwayat = list;                  // tunda render → tampil setelah animasi
         jalankanAnimasi(terakhir.nomorUndian, terakhir.nama);
         return;
       }
 
-      /* ---- Tidak ada pemenang baru → aman render riwayat ---- */
       jumlahPemenangDikenal = total;
       renderRiwayat(list);
       if (!isDrawing) elWait.textContent = "Menunggu undian berikutnya...";
     })
-    .catch(function () { /* abaikan error jaringan */ });
+    .catch(function () {});
   }
 
   function tampilStatis(nomor, nama) {
@@ -316,7 +303,7 @@
   }
 
   function jalankanAnimasi(nomorFinal, namaFinal) {
-    if (isAnimating) return;               // guard anti-double
+    if (isAnimating) return;
     isAnimating = true;
 
     elBadge.classList.remove("show");
@@ -345,10 +332,6 @@
     }, DURASI_ANIMASI);
   }
 
-  /* =====================================================================
-   *  ✅ FIX #4 : finishReveal jadi satu-satunya tempat yang membuka
-   *              isAnimating = false, lalu BARU render riwayat.
-   * ===================================================================== */
   function finishReveal(nama) {
     elCard.classList.remove("rolling");
     elCard.classList.add("win");
@@ -360,9 +343,8 @@
     elWait.textContent = "Menunggu undian berikutnya...";
     ledakkanConfetti();
 
-    isAnimating = false;                   // ✅ animasi resmi selesai DI SINI
+    isAnimating = false;
 
-    // ✅ render riwayat yang tadi ditunda (muncul setelah animasi selesai)
     if (pendingRiwayat) {
       renderRiwayat(pendingRiwayat);
       pendingRiwayat = null;
@@ -418,11 +400,20 @@
   }
 
   /* =====================================================================
-   *  ✅ FIX #5 : Tombol Tarik
-   *   - TIDAK set lastIdPemenang = null (yang bikin animasi dobel)
-   *   - Naikkan jumlahPemenangDikenal saat respons balik,
-   *     supaya polling tidak menganggapnya pemenang baru
-   *   - Tunggu animasi BENAR selesai (polling isAnimating)
+   *  ACAK DI FRONTEND (Fisher–Yates)
+   * ===================================================================== */
+  function acakFisherYates(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  /* =====================================================================
+   *  TOMBOL TARIK — alur baru:
+   *  1) ambil kandidat  2) acak  3) tulis  4) animasi
    * ===================================================================== */
   btnTarik.addEventListener("click", function () {
     if (!IS_PANITIA) return;
@@ -432,55 +423,78 @@
     isDrawing = true;
     btnTarik.disabled = true;
     btnTarik.textContent = "⏳ MENGACAK...";
-    elWait.textContent = "Menarik nomor...";
+    elWait.textContent = "Mengambil daftar nomor...";
 
+    // [1] Ambil kandidat
     fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ aksi: "tarikUndian" })
+      body: JSON.stringify({ aksi: "ambilKandidatUndian" })
     })
     .then(function (r) { return r.json(); })
     .then(function (data) {
-      if (!data.success) {
-        alert("Gagal menarik undian:\n\n" + (data.message || "Tidak diketahui."));
-        isDrawing = false;
-        btnTarik.disabled = false;
-        btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
+      if (!data.success || !data.kandidat || data.kandidat.length === 0) {
+        alert("Tidak ada nomor valid yang tersisa untuk diundi.");
+        batalTombol();
         return;
       }
 
-      // ✅ KUNCI INTI: naikkan penanda jumlah pemenang SEKARANG.
-      //    Jadi polling yang datang di tengah animasi TIDAK menganggap
-      //    ini "pemenang baru" → animasi tidak dobel.
+      // [2] Acak di frontend & pilih pemenang
+      var teracak = acakFisherYates(data.kandidat);
+      var pilihan = teracak[0];
+      elWait.textContent = "Menentukan pemenang...";
+
+      // [3] Kirim pilihan ke server untuk VERIFIKASI + tulis
+      return fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+          aksi: "tulisPemenang",
+          nomorUndian: pilihan.nomor,
+          idPeserta: pilihan.idPeserta
+        })
+      })
+      .then(function (r) { return r.json(); });
+    })
+    .then(function (hasil) {
+      if (!hasil) return;   // sudah di-handle di batalTombol
+
+      if (!hasil.success) {
+        // bisa jadi sudah menang (race) → cukup informasikan
+        alert("Gagal menulis pemenang:\n\n" + (hasil.message || "Tidak diketahui."));
+        batalTombol();
+        return;
+      }
+
+      // [4] Animasi satu kali
       jumlahPemenangDikenal = jumlahPemenangDikenal < 0
         ? 1
         : jumlahPemenangDikenal + 1;
 
-      pendingRiwayat = null;              // akan diisi ulang via fetchRiwayat
+      pendingRiwayat = null;
+      jalankanAnimasi(hasil.nomorUndian, hasil.nama);
 
-      // Jalankan animasi SEKALI
-      jalankanAnimasi(data.nomorUndian, data.nama);
-
-      // ✅ Tunggu animasi BENAR-benar selesai (poll isAnimating)
       var tunggu = setInterval(function () {
         if (!isAnimating) {
           clearInterval(tunggu);
-          isDrawing = false;
-          btnTarik.disabled = false;
-          btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
+          batalTombol();
           sudahInit = true;
-          fetchRiwayat();                 // sinkronkan riwayat setelah animasi
+          fetchRiwayat();
         }
       }, 200);
     })
     .catch(function (err) {
       console.error(err);
       alert("Gagal terhubung ke server.");
-      isDrawing = false;
-      btnTarik.disabled = false;
-      btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
+      batalTombol();
     });
   });
+
+  function batalTombol() {
+    isDrawing = false;
+    btnTarik.disabled = false;
+    btnTarik.textContent = "🎲 TARIK NOMOR UNDIAN";
+  }
 
   /* ====== INIT ====== */
   terapkanMode();
